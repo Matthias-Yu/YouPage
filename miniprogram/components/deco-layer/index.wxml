@@ -1,0 +1,56 @@
+<wxs module="g" src="./gesture.wxs"></wxs>
+
+<view class="layer">
+  <!-- .el 是零尺寸的锚点，位置/旋转/缩放都作用在它上面；.box 以锚点为中心铺开 -->
+  <view
+    wx:for="{{list}}"
+    wx:key="id"
+    class="el {{item.id === sel ? 'el-on' : ''}}"
+    style="transform:{{item.tf}}"
+    pos="{{item.pos}}"
+    change:pos="{{g.posChange}}"
+  >
+    <view
+      class="box"
+      style="width:{{item.w}}px;height:{{item.h}}px;margin:-{{item.h / 2}}px 0 0 -{{item.w / 2}}px"
+      data-id="{{item.id}}"
+      catchtap="onTapEl"
+    >
+      <image wx:if="{{item.t === 's'}}" class="art" src="{{item.src}}" mode="aspectFit" />
+      <view wx:elif="{{item.t === 't'}}" class="tape" style="{{item.css}}"></view>
+      <view wx:else class="photo">
+        <image class="photo-img" src="{{item.src}}" mode="aspectFill" />
+      </view>
+
+      <block wx:if="{{item.id === sel}}">
+        <view class="frame"></view>
+        <view
+          class="grip"
+          data-id="{{item.id}}"
+          data-pos="{{item.pos}}"
+          catchtouchstart="{{g.dragStart}}"
+          catchtouchmove="{{g.dragMove}}"
+          catchtouchend="{{g.dragEnd}}"
+          catchtouchcancel="{{g.dragEnd}}"
+        ></view>
+        <view class="hd hd-del" style="transform:scale({{item.inv}})" data-id="{{item.id}}" catchtap="onDelete">
+          <view class="x"></view>
+        </view>
+        <view
+          class="hd hd-rot"
+          style="transform:scale({{item.inv}})"
+          data-id="{{item.id}}"
+          data-pos="{{item.pos}}"
+          data-w="{{item.w}}"
+          data-h="{{item.h}}"
+          catchtouchstart="{{g.rotStart}}"
+          catchtouchmove="{{g.rotMove}}"
+          catchtouchend="{{g.rotEnd}}"
+          catchtouchcancel="{{g.rotEnd}}"
+        >
+          <image class="hd-ic" src="/assets/icons/rotate-light.svg" />
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

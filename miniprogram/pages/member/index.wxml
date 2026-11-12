@@ -1,0 +1,27 @@
+<view class="top">
+  <text class="top-t serif">有页会员</text>
+  <text class="top-s">让这本手帐更厚一点，也更安心一点。</text>
+</view>
+
+<view class="body">
+  <view wx:if="{{beta}}" class="paper beta">
+    <view class="beta-dot"></view>
+    <text class="beta-tx">内测期间，下面已上线的权益对所有人免费开放。</text>
+  </view>
+
+  <view class="paper list">
+    <view wx:for="{{benefits}}" wx:key="title" class="item">
+      <image class="item-ic" src="{{item.src}}" />
+      <view class="item-tx">
+        <view class="item-hd">
+          <text class="item-t serif">{{item.title}}</text>
+          <text wx:if="{{!item.ready}}" class="soon">筹备中</text>
+        </view>
+        <text class="item-d">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <text class="note">会员正式开放前，会在这里提前说明价格与规则。</text>
+  <view class="btn" bindtap="back">{{beta ? '知道了，继续写' : '返回'}}</view>
+</view>

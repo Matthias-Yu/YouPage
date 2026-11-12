@@ -1,0 +1,138 @@
+<view class="wrap" bindtap="onBlank">
+  <view class="paper page-paper">
+    <!-- 页眉 -->
+    <view class="hd">
+      <text class="hd-d serif {{isToday ? 'today' : ''}}">{{d}}</text>
+      <view class="hd-meta">
+        <text class="hd-en">{{monthEn}} · 周{{wd}}</text>
+        <text class="hd-lu">{{lunarText}}<text wx:if="{{fest}}" class="hd-fest">{{lunarText ? ' · ' : ''}}{{fest}}</text></text>
+      </view>
+      <view class="stamps">
+        <view class="stamp {{moodSrc ? 'filled' : ''}}" data-sheet="mood" catchtap="openSheet">
+          <image wx:if="{{moodSrc}}" class="stamp-img" src="{{moodSrc}}" />
+          <text wx:else class="stamp-ph">心情</text>
+        </view>
+        <view class="stamp {{weatherSrc ? 'filled' : ''}}" data-sheet="weather" catchtap="openSheet">
+          <image wx:if="{{weatherSrc}}" class="stamp-img" src="{{weatherSrc}}" />
+          <text wx:else class="stamp-ph">天气</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 写在月历格子里的那一句 -->
+    <view class="plan">
+      <text class="plan-l">月历上</text>
+      <input class="plan-in" value="{{plan}}" placeholder="写一句，会显示在月历的格子里" placeholder-class="ph" maxlength="40" bindinput="onPlan" />
+    </view>
+
+    <!-- 待办 -->
+    <view class="sec">
+      <view class="sec-t">
+        <text class="serif">今日待办</text>
+        <text wx:if="{{todos.length}}" class="sec-n">{{doneN}} / {{todos.length}}</text>
+      </view>
+      <view wx:for="{{todos}}" wx:key="id" class="todo {{item.done ? 'done' : ''}}">
+        <view class="chk" data-id="{{item.id}}" catchtap="toggleTodo"><view class="chk-dot"></view></view>
+        <input class="todo-in" value="{{item.text}}" data-id="{{item.id}}" maxlength="60" confirm-type="done" bindblur="editTodo" />
+      </view>
+      <view class="todo">
+        <view class="chk ghost"></view>
+        <input
+          class="todo-in"
+          value="{{draft}}"
+          placeholder="添一条待办…"
+          placeholder-class="ph"
+          maxlength="60"
+          confirm-type="next"
+          confirm-hold
+          bindinput="onDraft"
+          bindconfirm="addTodo"
+          bindblur="addTodo"
+        />
+      </view>
+    </view>
+
+    <!-- 随手记 -->
+    <view class="sec">
+      <view class="sec-t"><text class="serif">随手记</text></view>
+      <textarea
+        class="note"
+        value="{{note}}"
+        placeholder="今天发生了什么…"
+        placeholder-class="ph"
+        maxlength="-1"
+        auto-height
+        disable-default-padding
+        show-confirm-bar="{{false}}"
+        bindinput="onNote"
+      />
+    </view>
+
+    <deco-layer id="deco" class="deco" items="{{els}}" pw="{{pw}}" bind:change="onEls" />
+  </view>
+</view>
+
+<!-- 工具栏 -->
+<view class="bar">
+  <view class="round-btn" data-n="-1" bindtap="shift"><view class="chev l"></view></view>
+  <view class="tools">
+    <view class="tool" data-sheet="sticker" bindtap="openSheet">
+      <image class="tool-ic" src="/assets/icons/sticker.svg" /><text>贴纸</text>
+    </view>
+    <view class="tool" data-sheet="tape" bindtap="openSheet">
+      <image class="tool-ic" src="/assets/icons/tape.svg" /><text>胶带</text>
+    </view>
+    <view class="tool" bindtap="pickPhoto">
+      <image class="tool-ic" src="/assets/icons/photo.svg" /><text>照片</text>
+    </view>
+  </view>
+  <view class="round-btn" data-n="1" bindtap="shift"><view class="chev r"></view></view>
+</view>
+
+<!-- 抽屉 -->
+<view class="mask {{sheet ? 'show' : ''}}" bindtap="closeSheet" catchtouchmove="noop"></view>
+<view class="sheet {{sheet ? 'show' : ''}}">
+  <view class="sheet-bar"></view>
+
+  <block wx:if="{{sheet === 'mood' || sheet === 'weather'}}">
+    <view class="sheet-title">{{sheet === 'mood' ? '今天心情怎么样' : '今天天气'}}</view>
+    <view class="opts">
+      <view
+        wx:for="{{sheet === 'mood' ? moods : weathers}}"
+        wx:key="id"
+        class="opt {{(sheet === 'mood' ? mood : weather) === item.id ? 'on' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="pickStamp"
+      >
+        <image class="opt-img" src="{{item.src}}" />
+        <text class="opt-tx">{{item.name}}</text>
+      </view>
+    </view>
+  </block>
+
+  <block wx:elif="{{sheet === 'sticker'}}">
+    <view class="packs">
+      <view wx:for="{{packs}}" wx:key="id" class="pack {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">
+        <text>{{item.name}}</text>
+        <text wx:if="{{item.vip}}" class="tag pack-tag">{{beta ? '限免' : '会员'}}</text>
+      </view>
+    </view>
+    <scroll-view scroll-y class="grid-scroll">
+      <view class="grid">
+        <view wx:for="{{packItems}}" wx:key="k" class="cell {{item.wide ? 'wide' : ''}}" data-k="{{item.k}}" bindtap="pickSticker">
+          <image class="cell-img" src="{{item.src}}" mode="aspectFit" />
+        </view>
+      </view>
+    </scroll-view>
+  </block>
+
+  <block wx:elif="{{sheet === 'tape'}}">
+    <view class="sheet-title">撕一段胶带</view>
+    <view class="tapes">
+      <view wx:for="{{tapes}}" wx:key="id" class="tape-row" data-id="{{item.id}}" bindtap="pickTape">
+        <view class="tape-demo" style="{{item.css}}"></view>
+        <text class="tape-name">{{item.name}}</text>
+      </view>
+    </view>
+  </block>
+</view>

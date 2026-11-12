@@ -1,0 +1,258 @@
+/* 这一页的尺寸要和 3D 画布按像素对齐，所以用 px 而不是 rpx。
+ * #F1DFC2 是桌面的颜色，和场景里的桌面完全一致，画布和上下的界面之间看不出接缝。 */
+page {
+  height: 100%;
+  overflow: hidden;
+  background: #F1DFC2;
+}
+
+.top {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  background: #F1DFC2;
+}
+.hint {
+  position: absolute;
+  left: 16px;
+  right: 116px;
+  font-size: 11px;
+  line-height: 17px;
+  letter-spacing: 1px;
+  color: #9A8F78;
+}
+.today-chip {
+  position: absolute;
+  left: 16px;
+  height: 30px;
+  padding: 0 14px;
+  line-height: 30px;
+  border-radius: 15px;
+  font-size: 12px;
+  color: #FCF0DA;
+  background: #C96F43;
+}
+
+.gl {
+  position: fixed;
+  left: 0;
+  width: 100vw;
+}
+
+/* 底部 */
+.panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #F1DFC2;
+}
+.pills {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 62px;
+}
+.pill {
+  margin: 0 4px;
+  height: 38px;
+  padding: 0 14px;
+  line-height: 38px;
+  border-radius: 19px;
+  font-size: 13px;
+  color: #FCF0DA;
+  background: #30533A;
+  box-shadow: 0 3px 8px rgba(43, 56, 46, 0.25);
+}
+.pill:active {
+  background: #254230;
+}
+.pill.sq {
+  width: 38px;
+  padding: 0;
+  text-align: center;
+  font-size: 18px;
+}
+.pill.light {
+  color: #30533A;
+  background: #FFFAEE;
+  box-shadow: 0 3px 8px rgba(96, 66, 28, 0.16);
+}
+.pill.light:active {
+  background: #F3E8D0;
+}
+
+/* 贴纸条：一张摆在桌上的贴纸纸 */
+.tray {
+  height: 140px;
+  margin: 8px 10px 0;
+  padding: 8px 8px 0;
+  border-radius: 14px;
+  background: #FFFAEE;
+  box-shadow: 0 1px 2px rgba(96, 66, 28, 0.14), 0 6px 16px rgba(96, 66, 28, 0.14);
+}
+.tray-tabs {
+  display: flex;
+  height: 28px;
+  margin-bottom: 4px;
+}
+.tray-tab {
+  flex: 1;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 14px;
+  font-size: 12px;
+  color: #6F6A57;
+}
+.tray-tab.on {
+  color: #FCF0DA;
+  background: #30533A;
+}
+.tray-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  height: 96px;
+  overflow: hidden;
+}
+.tray-item {
+  width: 16.666%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tray-item.wide {
+  width: 25%;
+}
+.tray-item-hover {
+  transform: scale(0.88);
+  opacity: 0.7;
+}
+.tray-img {
+  width: 46px;
+  height: 46px;
+  filter: drop-shadow(0 1px 2px rgba(80, 56, 24, 0.25));
+}
+.tray-item.wide .tray-img {
+  width: 82px;
+  height: 41px;
+}
+.tray-tape {
+  width: 76px;
+  height: 18px;
+  opacity: 0.92;
+  transform: rotate(-2deg);
+}
+
+/* 第一次打开的同意卡片 */
+.consent {
+  margin: 8px 12px 0;
+  padding: 14px 16px 10px;
+  border-radius: 16px;
+  background: #FFFAEE;
+  box-shadow: 0 1px 2px rgba(96, 66, 28, 0.14), 0 6px 16px rgba(96, 66, 28, 0.14);
+}
+.c-t {
+  display: block;
+  font-size: 17px;
+  font-weight: 900;
+  color: #30533A;
+}
+.c-p {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #6F6A57;
+}
+.c-a {
+  color: #C96F43;
+}
+.c-btns {
+  display: flex;
+  margin-top: 12px;
+}
+.c-btn {
+  flex: 1;
+  height: 40px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 40px !important;
+  border-radius: 20px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+.c-btn::after {
+  border: 0;
+}
+.c-no {
+  width: auto !important;
+  margin-right: 10px !important;
+  color: #6F6A57 !important;
+  background: #F3E8D0 !important;
+}
+.c-ok {
+  width: auto !important;
+  color: #FCF0DA !important;
+  background: #30533A !important;
+}
+.c-s {
+  display: block;
+  margin-top: 8px;
+  text-align: center;
+  font-size: 11px;
+  color: #A69E88;
+}
+
+/* 写字时的输入栏 */
+.ink-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  height: 54px;
+  box-sizing: content-box;
+  padding: 0 12px;
+  background: #FFFAEE;
+  border-top: 1px solid #EBDABB;
+}
+.ink-date {
+  flex-shrink: 0;
+  margin-right: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #C96F43;
+}
+.ink-in {
+  flex: 1;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-family: var(--hand);
+  font-size: 17px;
+  color: #2F4F66;
+  background: #F6EBD3;
+}
+.ink-ph {
+  color: #B9AC90;
+}
+.ink-btn {
+  flex-shrink: 0;
+  margin-left: 8px;
+  height: 34px;
+  padding: 0 14px;
+  line-height: 34px;
+  border-radius: 17px;
+  font-size: 13px;
+  color: #FCF0DA;
+  background: #30533A;
+}
+.ink-btn.line {
+  line-height: 32px;
+  color: #30533A;
+  background: transparent;
+  border: 1px solid #30533A;
+}

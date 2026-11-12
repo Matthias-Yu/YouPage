@@ -1,0 +1,14 @@
+module.exports = {
+  // 云开发环境 ID（微信开发者工具 → 云开发 → 设置 里能看到，形如 cloud1-xxxx）。
+  // 留空时使用这个小程序的默认环境（最早创建的那个）。换环境时，云函数 youpageSync 也要部署到新环境。
+  CLOUD_ENV: 'cloud1-d1g2id4e4d7d2e2b4',
+  // 同步用的云函数，代码在 cloudfunctions/youpageSync
+  SYNC_FUNCTION: 'youpageSync',
+  // 照片上传到云存储的目录
+  PHOTO_DIR: 'youpage/photos/',
+
+  // 隐私政策、用户协议里的运营者和联系方式。提交审核前必须填好：
+  // 运营者写小程序主体名称（个人主体写姓名，企业写公司全称），邮箱用来接收用户的查阅、删除等请求。
+  OPERATOR: '',
+  CONTACT_EMAIL: ''
+}

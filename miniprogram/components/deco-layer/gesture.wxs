@@ -1,0 +1,119 @@
+// 贴纸手势（运行在渲染层，不经过 setData，所以跟手）。
+// 拖动本体 = 移动；拖右下角手柄 = 同时旋转和缩放；松手后把结果交给组件的 commit()。
+
+var st = null
+
+function parsePos(str) {
+  var a = ('' + str).split(',')
+  return { x: parseFloat(a[0]), y: parseFloat(a[1]), s: parseFloat(a[2]), r: parseFloat(a[3]) }
+}
+
+function tf(p) {
+  return 'translate3d(' + p.x + 'px,' + p.y + 'px,0) rotate(' + p.r + 'deg) scale(' + p.s + ')'
+}
+
+function apply(owner) {
+  var el = owner.selectComponent('.el-on')
+  if (el) {
+    el.setStyle({ transform: tf(st.now) })
+  }
+}
+
+// 数据里的位置变了（落盘、撤销、置顶重排），同步到样式
+function posChange(nv, ov, owner, ins) {
+  if (nv) {
+    ins.setStyle({ transform: tf(parsePos(nv)) })
+  }
+}
+
+function begin(e) {
+  var ds = e.currentTarget.dataset
+  var p = parsePos(ds.pos)
+  return { id: ds.id, base: p, now: { x: p.x, y: p.y, s: p.s, r: p.r }, moved: false }
+}
+
+function dragStart(e, owner) {
+  var t = e.touches[0]
+  st = begin(e)
+  st.sx = t.pageX
+  st.sy = t.pageY
+  return false
+}
+
+function dragMove(e, owner) {
+  if (!st) {
+    return false
+  }
+  var t = e.touches[0]
+  st.now.x = st.base.x + t.pageX - st.sx
+  st.now.y = st.base.y + t.pageY - st.sy
+  st.moved = true
+  apply(owner)
+  return false
+}
+
+function finish(e, owner) {
+  if (st && st.moved) {
+    owner.callMethod('commit', { id: st.id, x: st.now.x, y: st.now.y, s: st.now.s, r: st.now.r })
+  }
+  st = null
+  return false
+}
+
+function rotStart(e, owner) {
+  var t = e.touches[0]
+  var ds = e.currentTarget.dataset
+  st = begin(e)
+  var hw = ds.w / 2
+  var hh = ds.h / 2
+  // 手柄在右下角：a0 是它相对中心的固有角度，len0 是未缩放时到中心的距离
+  st.a0 = Math.atan2(hh, hw)
+  st.len0 = Math.sqrt(hw * hw + hh * hh)
+  var rad = st.base.r * Math.PI / 180
+  // 由手指位置反推元素中心的页面坐标
+  st.cx = t.pageX - st.len0 * st.base.s * Math.cos(st.a0 + rad)
+  st.cy = t.pageY - st.len0 * st.base.s * Math.sin(st.a0 + rad)
+  return false
+}
+
+function rotMove(e, owner) {
+  if (!st) {
+    return false
+  }
+  var t = e.touches[0]
+  var dx = t.pageX - st.cx
+  var dy = t.pageY - st.cy
+  var s = Math.sqrt(dx * dx + dy * dy) / st.len0
+  if (s < 0.4) {
+    s = 0.4
+  }
+  if (s > 3.6) {
+    s = 3.6
+  }
+  var r = (Math.atan2(dy, dx) - st.a0) * 180 / Math.PI
+  // 接近水平 / 垂直时吸附
+  var near = Math.round(r / 90) * 90
+  if (Math.abs(r - near) < 4) {
+    r = near
+  }
+  st.now.s = Math.round(s * 1000) / 1000
+  st.now.r = Math.round(r * 10) / 10
+  st.moved = true
+  apply(owner)
+  // 手柄反向缩放，保持大小不变
+  var hs = owner.selectAllComponents('.hd')
+  for (var i = 0; i < hs.length; i++) {
+    hs[i].setStyle({ transform: 'scale(' + (1 / st.now.s) + ')' })
+  }
+  return false
+}
+
+module.exports = {
+  posChange: posChange,
+  dragStart: dragStart,
+  dragMove: dragMove,
+  dragEnd: finish,
+  rotStart: rotStart,
+  rotMove: rotMove,
+  rotEnd: finish
+}

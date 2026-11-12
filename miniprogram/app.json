@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/day/index",
+    "pages/habits/index",
+    "pages/me/index",
+    "pages/member/index",
+    "pages/legal/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#F6E3C7",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "有页",
+    "backgroundColor": "#F6E3C7",
+    "backgroundTextStyle": "dark"
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

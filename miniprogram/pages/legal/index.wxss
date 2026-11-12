@@ -1,0 +1,59 @@
+.wrap {
+  padding: 24rpx 24rpx calc(48rpx + env(safe-area-inset-bottom));
+}
+.doc {
+  padding: 40rpx 36rpx 36rpx;
+}
+.title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 900;
+  color: var(--green);
+}
+.date {
+  display: block;
+  margin: 8rpx 0 24rpx;
+  font-size: 22rpx;
+  color: var(--ink-3);
+}
+.sec {
+  margin-top: 28rpx;
+}
+.h {
+  display: block;
+  margin-bottom: 8rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--ink);
+}
+.p {
+  display: block;
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+  line-height: 44rpx;
+  color: var(--ink-2);
+}
+.outro {
+  margin-top: 32rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx dashed var(--line-2);
+}
+.o {
+  display: block;
+  font-size: 22rpx;
+  line-height: 38rpx;
+  color: var(--ink-3);
+}
+.link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+  padding: 0 32rpx;
+  height: 96rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  color: var(--green);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}

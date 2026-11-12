@@ -1,0 +1,69 @@
+<view class="tab-page page">
+  <view class="hd">
+    <view class="hd-l">
+      <text class="h1 serif">集章卡</text>
+      <text class="h-sub">做到了，就盖一个章。</text>
+    </view>
+    <view class="mon">
+      <view class="round-btn" data-n="-1" bindtap="shiftMonth"><view class="chev l"></view></view>
+      <text class="mon-t serif">{{y}}.{{mm}}</text>
+      <view class="round-btn" data-n="1" bindtap="shiftMonth"><view class="chev r"></view></view>
+    </view>
+  </view>
+
+  <view wx:for="{{habits}}" wx:key="id" class="paper card" data-id="{{item.id}}" bindlongpress="onMore">
+    <view class="card-hd">
+      <image class="h-ic" src="{{item.src}}" />
+      <view class="h-info">
+        <text class="h-name">{{item.name}}</text>
+        <text class="h-meta">本月 {{item.count}} 天<text wx:if="{{item.streak > 1}}"> · 连续 {{item.streak}} 天</text></text>
+      </view>
+      <view wx:if="{{isThisMonth}}" class="seal-btn {{item.todayDone ? 'on' : ''}}" data-id="{{item.id}}" catchtap="toggleToday">
+        {{item.todayDone ? '今日已盖' : '盖章'}}
+      </view>
+    </view>
+    <view class="dots">
+      <view
+        wx:for="{{item.days}}"
+        wx:for-item="day"
+        wx:key="d"
+        class="dot {{day.on ? 'on' : ''}} {{day.today ? 'today' : ''}} {{day.future ? 'future' : ''}}"
+        data-id="{{item.id}}"
+        data-d="{{day.d}}"
+        data-future="{{day.future}}"
+        catchtap="toggleDay"
+      >{{day.d}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{!habits.length}}" class="empty">
+    <image class="empty-img" src="/assets/stickers/seal.svg" />
+    <text class="empty-t serif">还没有集章卡</text>
+    <text class="empty-s">挑一件想坚持的小事，比如每天喝够水。</text>
+  </view>
+
+  <view class="add" bindtap="openAdd">
+    <text class="add-plus">＋</text>
+    <text>新的集章卡</text>
+  </view>
+  <text wx:if="{{habits.length}}" class="tip">长按卡片可以删除</text>
+</view>
+
+<view class="mask {{sheet ? 'show' : ''}}" bindtap="closeAdd" catchtouchmove="noop"></view>
+<view class="sheet {{sheet ? 'show' : ''}}">
+  <view class="sheet-bar"></view>
+  <view class="sheet-title">新的集章卡</view>
+  <view class="field">
+    <image class="field-ic" src="/assets/stickers/{{icon}}.svg" />
+    <input class="field-in" value="{{name}}" placeholder="想坚持的事" placeholder-class="ph" maxlength="12" bindinput="onName" />
+  </view>
+  <view class="presets">
+    <view wx:for="{{presets}}" wx:key="name" class="chip preset" data-i="{{index}}" bindtap="pickPreset">{{item.name}}</view>
+  </view>
+  <view class="icons">
+    <view wx:for="{{icons}}" wx:key="k" class="icon {{icon === item.k ? 'on' : ''}}" data-k="{{item.k}}" bindtap="pickIcon">
+      <image class="icon-img" src="{{item.src}}" />
+    </view>
+  </view>
+  <view class="btn" bindtap="create">开一张卡</view>
+</view>

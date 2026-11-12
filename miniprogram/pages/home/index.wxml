@@ -1,0 +1,99 @@
+<!-- 顶部：和桌面同色的一条，放提示 -->
+<view class="top" style="height:{{topH}}px">
+  <text wx:if="{{!ready}}" class="hint" style="top:{{navTop + 8}}px">正在翻开手帐…</text>
+  <view wx:elif="{{open && !isThisMonth && !ink}}" class="today-chip" style="top:{{navTop + 1}}px" bindtap="goToday">回到今天</view>
+  <text wx:elif="{{hint}}" class="hint" style="top:{{navTop}}px">点封面打开 · 点日期写字 · 横拖纸页翻月\n拉胶带卷撕一段 · 点挂件摇铃 · 拖动转视角</text>
+  <text wx:elif="{{ink}}" class="hint" style="top:{{navTop + 8}}px">字会直接写在这一格里</text>
+</view>
+
+<!-- 3D 场景 -->
+<canvas
+  type="webgl"
+  id="gl"
+  class="gl"
+  style="top:{{topH}}px;height:{{glH}}px"
+  disable-scroll
+  bindtouchstart="onTouchStart"
+  bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd"
+  bindtouchcancel="onTouchEnd"
+></canvas>
+
+<!-- 底部：贴纸条 + 一排按钮 -->
+<view wx:if="{{!ink}}" class="panel" style="height:{{panelH}}px">
+  <!-- 第一次打开：先请用户看隐私政策 -->
+  <view wx:if="{{consentAsk}}" class="consent">
+    <text class="c-t serif">欢迎来到有页</text>
+    <view class="c-p">
+      <text>你写下的内容和贴上的照片会保存在这台手机上；同意后还会同步到云端，换手机也能找回。使用前请阅读</text>
+      <text class="c-a" data-doc="privacy" bindtap="openLegal">《隐私政策》</text>
+      <text>和</text>
+      <text class="c-a" data-doc="terms" bindtap="openLegal">《用户协议》</text>
+      <text>。</text>
+    </view>
+    <view class="c-btns">
+      <button class="c-btn c-no" bindtap="declineConsent">不同意</button>
+      <button
+        id="agree-btn"
+        class="c-btn c-ok"
+        open-type="agreePrivacyAuthorization"
+        bindagreeprivacyauthorization="agreeConsent"
+        bindtap="agreeConsent"
+      >同意并开始</button>
+    </view>
+    <text class="c-s">不同意也可以使用，内容只保存在这台手机上。</text>
+  </view>
+  <block wx:else>
+  <view wx:if="{{tray}}" class="tray">
+    <view class="tray-tabs">
+      <view wx:for="{{packs}}" wx:key="id" class="tray-tab {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">{{item.name}}</view>
+    </view>
+    <view class="tray-items">
+      <view
+        wx:for="{{items}}"
+        wx:key="k"
+        class="tray-item {{item.wide ? 'wide' : ''}}"
+        hover-class="tray-item-hover"
+        data-t="{{item.t}}"
+        data-k="{{item.k}}"
+        catchtouchstart="trayStart"
+        catchtouchmove="trayMove"
+        catchtouchend="trayEnd"
+        catchtouchcancel="trayEnd"
+      >
+        <image wx:if="{{item.src}}" class="tray-img" src="{{item.src}}" mode="aspectFit" />
+        <view wx:else class="tray-tape" style="{{item.css}}"></view>
+      </view>
+    </view>
+  </view>
+  <view class="pills">
+    <view class="pill" bindtap="toggleOpen">{{open ? '合上' : '打开封面'}}</view>
+    <view class="pill sq" data-n="-1" bindtap="shiftMonth">‹</view>
+    <view class="pill sq" data-n="1" bindtap="shiftMonth">›</view>
+    <view class="pill" bindtap="toggleTray">{{tray ? '收起' : '贴纸'}}</view>
+    <view class="pill light" bindtap="goHabits">打卡</view>
+    <view class="pill light" bindtap="goMe">我的</view>
+  </view>
+  </block>
+</view>
+
+<!-- 写字：输入栏贴着键盘 -->
+<view wx:else class="ink-bar" style="bottom:{{kb}}px;padding-bottom:{{kb ? 0 : safeBottom}}px">
+  <text class="ink-date serif">{{ink.title}}</text>
+  <input
+    class="ink-in"
+    value="{{ink.value}}"
+    focus
+    maxlength="40"
+    placeholder="写点什么"
+    placeholder-class="ink-ph"
+    confirm-type="done"
+    adjust-position="{{false}}"
+    bindinput="onInk"
+    bindconfirm="endInk"
+    bindblur="endInk"
+    bindkeyboardheightchange="onKeyboard"
+  />
+  <view class="ink-btn line" catchtouchstart="openDay">日页</view>
+  <view class="ink-btn" catchtouchstart="endInk">好了</view>
+</view>

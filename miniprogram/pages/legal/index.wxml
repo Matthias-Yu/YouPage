@@ -1,0 +1,25 @@
+<view class="wrap">
+  <view class="paper doc">
+    <text class="title serif">{{doc.title}}</text>
+    <text class="date">更新日期：{{doc.updated}}</text>
+    <text wx:for="{{doc.intro}}" wx:key="*this" class="p" user-select>{{item}}</text>
+
+    <view wx:for="{{doc.sections}}" wx:key="h" class="sec">
+      <text class="h serif">{{item.h}}</text>
+      <text wx:for="{{item.p}}" wx:for-item="line" wx:key="*this" class="p" user-select>{{line}}</text>
+    </view>
+
+    <view class="outro">
+      <text wx:for="{{doc.outro}}" wx:key="*this" class="o" user-select>{{item}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{isPrivacy && contract}}" class="link" bindtap="openContract">
+    <text>查看微信展示的{{contract}}</text>
+    <view class="chev r"></view>
+  </view>
+  <view class="link" bindtap="openOther">
+    <text>{{isPrivacy ? '有页用户协议' : '有页隐私政策'}}</text>
+    <view class="chev r"></view>
+  </view>
+</view>

@@ -1,0 +1,109 @@
+<view class="tab-page page">
+  <view class="brand">
+    <image class="brand-logo" src="/assets/logo.png" />
+    <view class="brand-tx">
+      <text class="brand-name serif">有页</text>
+      <text class="brand-slogan">每天，有一页。</text>
+    </view>
+  </view>
+
+  <view class="paper stats">
+    <view class="stat">
+      <text class="stat-n serif">{{stats.pages}}</text>
+      <text class="stat-l">已写页数</text>
+    </view>
+    <view class="stat">
+      <text class="stat-n serif">{{stats.streak}}</text>
+      <text class="stat-l">连续天数</text>
+    </view>
+    <view class="stat">
+      <text class="stat-n serif">{{stats.stickers}}</text>
+      <text class="stat-l">贴过的贴纸</text>
+    </view>
+  </view>
+
+  <!-- 会员卡：做成一本墨绿封皮的小册子 -->
+  <view class="vip" bindtap="openMember">
+    <view class="vip-main">
+      <text class="vip-t serif">有页会员</text>
+      <text class="vip-s">{{isMember ? '感谢支持，全部权益已解锁' : (beta ? '内测期间，全部权益限时免费' : '更多贴纸、云同步、导出长图')}}</text>
+    </view>
+    <view class="vip-go">{{isMember ? '查看' : (beta ? '看看权益' : '了解')}}</view>
+    <view class="vip-fold"></view>
+  </view>
+
+  <view class="paper list">
+    <view class="row">
+      <text class="row-t">启动时先合着封面</text>
+      <switch checked="{{cover}}" color="#30533A" bindchange="onCover" />
+    </view>
+    <view class="row">
+      <text class="row-t">音效</text>
+      <switch checked="{{sound}}" color="#30533A" bindchange="onSound" />
+    </view>
+    <view class="row" bindtap="onWeekStart">
+      <text class="row-t">每周从哪天开始</text>
+      <text class="row-v">{{weekStart === 1 ? '周一' : '周日'}}</text>
+      <view class="chev r"></view>
+    </view>
+  </view>
+
+  <view wx:if="{{sync.available}}" class="paper list">
+    <view class="row">
+      <view class="row-main">
+        <text class="row-t">云端同步</text>
+        <text class="row-s {{sync.state === 'error' ? 'warn' : ''}}">{{sync.text}}</text>
+      </view>
+      <switch checked="{{sync.on}}" color="#30533A" bindchange="onSync" />
+    </view>
+    <view wx:if="{{sync.on}}" class="row" bindtap="syncNow">
+      <text class="row-t">立即同步</text>
+      <text class="row-v">{{sync.state === 'syncing' ? '同步中…' : ''}}</text>
+      <view class="chev r"></view>
+    </view>
+    <view class="row" bindtap="wipeCloud">
+      <text class="row-t danger">删除云端数据</text>
+      <view class="chev r"></view>
+    </view>
+  </view>
+
+  <view class="paper list">
+    <view class="row" bindtap="exportBackup">
+      <text class="row-t">备份手帐</text>
+      <text class="row-v">导出文件</text>
+      <view class="chev r"></view>
+    </view>
+    <view class="row" bindtap="importBackup">
+      <text class="row-t">恢复手帐</text>
+      <view class="chev r"></view>
+    </view>
+    <view class="row" bindtap="clearAll">
+      <text class="row-t danger">清空手帐</text>
+      <view class="chev r"></view>
+    </view>
+  </view>
+  <text wx:if="{{sync.on && sync.state !== 'error'}}" class="note">已开启云端同步：换手机后用同一个微信打开有页，手帐会自动回来。备份文件可以当作多一份保险。</text>
+  <text wx:else class="note">手帐内容现在只保存在这台手机的微信里。删除小程序或换手机前，请先备份（还没上传到云端的照片不包含在备份文件里）。</text>
+
+  <view class="paper list">
+    <button class="row row-btn" open-type="feedback">
+      <text class="row-t">意见反馈</text>
+      <view class="chev r"></view>
+    </button>
+    <button class="row row-btn" open-type="share">
+      <text class="row-t">把有页推荐给朋友</text>
+      <view class="chev r"></view>
+    </button>
+  </view>
+
+  <view class="paper list">
+    <view class="row" data-doc="privacy" bindtap="openLegal">
+      <text class="row-t">隐私政策</text>
+      <view class="chev r"></view>
+    </view>
+    <view class="row" data-doc="terms" bindtap="openLegal">
+      <text class="row-t">用户协议</text>
+      <view class="chev r"></view>
+    </view>
+  </view>
+</view>

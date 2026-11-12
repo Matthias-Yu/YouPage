@@ -1,0 +1,11 @@
+# 微信开发者工具的本机设置（每台电脑不一样）
+project.private.config.json
+
+# 依赖（云函数部署时在云端安装）
+node_modules/
+miniprogram_npm/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini

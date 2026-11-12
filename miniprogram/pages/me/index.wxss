@@ -1,0 +1,173 @@
+.page {
+  padding-left: 24rpx;
+  padding-right: 24rpx;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0 20rpx;
+}
+.brand-logo {
+  width: 152rpx;
+  height: 152rpx;
+  margin-left: -12rpx;
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 76%, transparent 98%);
+  mask-image: radial-gradient(circle closest-side, #000 76%, transparent 98%);
+}
+.brand-tx {
+  display: flex;
+  flex-direction: column;
+}
+.brand-name {
+  font-size: 56rpx;
+  font-weight: 900;
+  letter-spacing: 8rpx;
+  line-height: 1.2;
+  color: var(--green);
+}
+.brand-slogan {
+  font-size: 24rpx;
+  letter-spacing: 4rpx;
+  color: var(--ink-2);
+}
+
+.stats {
+  display: flex;
+  padding: 30rpx 0;
+}
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 2rpx solid var(--line);
+}
+.stat:last-child {
+  border-right: 0;
+}
+.stat-n {
+  font-size: 52rpx;
+  font-weight: 900;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.stat-l {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: var(--ink-3);
+}
+
+/* 会员卡 */
+.vip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 24rpx;
+  padding: 34rpx 32rpx;
+  overflow: hidden;
+  border-radius: 20rpx;
+  background: var(--green);
+  box-shadow: 8rpx 8rpx 0 var(--green-deep);
+}
+.vip-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.vip-t {
+  font-size: 36rpx;
+  font-weight: 900;
+  letter-spacing: 4rpx;
+  color: var(--paper);
+}
+.vip-s {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: var(--green-soft);
+}
+.vip-go {
+  position: relative;
+  z-index: 1;
+  height: 60rpx;
+  padding: 0 28rpx;
+  line-height: 60rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--green);
+  background: var(--paper);
+}
+/* 右下角翻起的纸角，呼应图标 */
+.vip-fold {
+  position: absolute;
+  right: -52rpx;
+  bottom: -52rpx;
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  background: var(--terra);
+  opacity: 0.9;
+}
+
+.list {
+  margin-top: 24rpx;
+  padding: 0 28rpx;
+}
+.row {
+  display: flex;
+  align-items: center;
+  min-height: 104rpx;
+  border-bottom: 2rpx solid var(--line);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.row-t {
+  flex: 1;
+  font-size: 30rpx;
+  color: var(--ink);
+}
+.row-t.danger {
+  color: var(--terra);
+}
+.row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 18rpx 0;
+}
+.row-s {
+  margin-top: 2rpx;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  color: var(--ink-3);
+}
+.row-s.warn {
+  color: var(--terra);
+}
+.row-v {
+  margin-right: 12rpx;
+  font-size: 26rpx;
+  color: var(--ink-3);
+}
+/* 把 button 还原成普通行（style v2 的按钮有固定宽度和内边距，需要压过去） */
+.row-btn {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left;
+  font-weight: 400 !important;
+  line-height: 1.5;
+  background: transparent !important;
+  border-radius: 0;
+}
+.row-btn::after {
+  border: 0;
+}
+.note {
+  display: block;
+  margin: 16rpx 8rpx 0;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  color: var(--ink-3);
+}
