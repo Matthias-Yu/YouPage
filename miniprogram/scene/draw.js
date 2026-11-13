@@ -14,21 +14,20 @@ const RINGF = [0.2, 0.29, 0.38, 0.62, 0.71, 0.8]
 const GRID = { x: 108, y: 338, w: 884, bottom: 1388 }
 
 const C = {
-  paper: '#FBF4E3',
-  ink: '#2B382E',
-  ink2: '#7A7461',
-  faint: '#B9AC90',
-  line: '#E0D1B1',
-  line2: '#CDBB96',
-  green: '#30533A',
-  greenSoft: '#C6D6BE',
-  terra: '#C96F43',
-  cream: '#FCF0DA',
+  paper: '#FCF9EF',
+  ink: '#293E33',
+  ink2: '#626A60',
+  faint: '#7C8274',
+  line: '#C0C9B8',
+  line2: '#A7B3A1',
+  green: '#345744',
+  terra: '#A35648',
+  cream: '#FFF6DF',
   hand: '#2F4F66'
 }
-const SERIF = '"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif'
-const SANS = '"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif'
-const HAND = '"Kaiti SC","STKaiti","KaiTi","Noto Serif CJK SC",serif'
+const SANS = '"PingFang SC","HarmonyOS Sans SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif'
+const NUMERALS = '"Avenir Next",Roboto,"Helvetica Neue",Arial,sans-serif'
+const EDITORIAL = 'Georgia,"Noto Serif",serif'
 
 // 每个月页眉上的小插画（取自贴纸）
 const MONTH_ART = ['wx-snow', 'heart', 'flower', 'leaf', 'wx-sunny', 'melon', 'icecream', 'plane', 'moon', 'coffee', 'book', 'gift']
@@ -41,14 +40,6 @@ function begin(ctx, pw, ph, lw, lh, mirror) {
 function pixels(ctx, w, h) {
   const img = ctx.getImageData(0, 0, w, h)
   return { data: new Uint8Array(img.data.buffer), width: w, height: h }
-}
-
-function spaced(ctx, str, x, y, gap) {
-  for (let i = 0; i < str.length; i++) {
-    ctx.fillText(str[i], x, y)
-    x += ctx.measureText(str[i]).width + gap
-  }
-  return x
 }
 
 function wrap(ctx, text, maxW, maxLines) {
@@ -87,24 +78,118 @@ function roundRect(ctx, x, y, w, h, r) {
 function paperBase(ctx, w, h, holeX) {
   ctx.fillStyle = C.paper
   ctx.fillRect(0, 0, w, h)
+  const shade = ctx.createLinearGradient(0, 0, w * 0.9, h)
+  shade.addColorStop(0, 'rgba(255,255,255,0.64)')
+  shade.addColorStop(0.68, 'rgba(255,255,255,0)')
+  shade.addColorStop(1, 'rgba(171,155,120,0.13)')
+  ctx.fillStyle = shade
+  ctx.fillRect(0, 0, w, h)
+  ctx.fillStyle = 'rgba(81,76,52,0.055)'
+  for (let i = 0; i < 1300; i++) {
+    const x = ((i * 379 + (i % 17) * 31) % 1031) / 1031 * w
+    const y = ((i * 233 + (i % 29) * 47) % 1451) / 1451 * h
+    ctx.fillRect(x, y, 2 + i % 4, 1)
+  }
   // 靠近活页环一侧的折痕阴影
   const fromLeft = holeX < w / 2
   const g = ctx.createLinearGradient(fromLeft ? 0 : w, 0, fromLeft ? 96 : w - 96, 0)
-  g.addColorStop(0, 'rgba(120,90,50,0.2)')
-  g.addColorStop(1, 'rgba(120,90,50,0)')
+  g.addColorStop(0, 'rgba(56,65,51,0.19)')
+  g.addColorStop(1, 'rgba(56,65,51,0)')
   ctx.fillStyle = g
   ctx.fillRect(fromLeft ? 0 : w - 96, 0, 96, h)
   RINGF.forEach(f => {
     const y = f * h
-    const hole = ctx.createRadialGradient(holeX - 3, y - 3, 3, holeX, y, 22)
-    hole.addColorStop(0, '#3a332a')
-    hole.addColorStop(0.8, '#6b6152')
-    hole.addColorStop(1, '#a89c86')
+    const hole = ctx.createRadialGradient(holeX - 3, y - 3, 3, holeX, y, 16)
+    hole.addColorStop(0, '#353C33')
+    hole.addColorStop(0.8, '#60685D')
+    hole.addColorStop(1, '#A6AA97')
     ctx.fillStyle = hole
     ctx.beginPath()
-    ctx.arc(holeX, y, 21, 0, Math.PI * 2)
+    ctx.arc(holeX, y, 16, 0, Math.PI * 2)
     ctx.fill()
   })
+}
+
+// 封面和挂件共用「页」的手写字形。以 100 × 100 的坐标绘制，保证各端印样一致。
+function foilLetter(ctx, letter, x, y, size) {
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.scale(size / 100, size / 100)
+  ctx.strokeStyle = '#E1CB99'
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = 4.1
+  ctx.beginPath()
+  if (letter === '有') {
+    ctx.moveTo(10, 29)
+    ctx.quadraticCurveTo(49, 28, 91, 24)
+    ctx.moveTo(53, 9)
+    ctx.bezierCurveTo(44, 34, 33, 52, 9, 69)
+    ctx.moveTo(37, 48)
+    ctx.quadraticCurveTo(37, 77, 32, 92)
+    ctx.moveTo(38, 47)
+    ctx.quadraticCurveTo(57, 43, 76, 44)
+    ctx.quadraticCurveTo(77, 68, 73, 88)
+    ctx.quadraticCurveTo(71, 98, 60, 90)
+    ctx.moveTo(38, 61)
+    ctx.lineTo(75, 58)
+    ctx.moveTo(37, 74)
+    ctx.lineTo(75, 71)
+  } else {
+    ctx.moveTo(13, 23)
+    ctx.quadraticCurveTo(48, 20, 87, 19)
+    ctx.moveTo(50, 22)
+    ctx.quadraticCurveTo(48, 33, 42, 41)
+    ctx.moveTo(25, 43)
+    ctx.quadraticCurveTo(26, 58, 24, 73)
+    ctx.moveTo(25, 44)
+    ctx.quadraticCurveTo(49, 39, 76, 39)
+    ctx.quadraticCurveTo(78, 55, 75, 71)
+    ctx.moveTo(51, 53)
+    ctx.bezierCurveTo(51, 72, 42, 87, 14, 95)
+    ctx.moveTo(57, 78)
+    ctx.quadraticCurveTo(77, 87, 87, 95)
+  }
+  ctx.stroke()
+  ctx.restore()
+}
+
+// 封面烫印的枝叶。叶片各自旋转，细线刻出叶脉。
+function coverSprig(ctx) {
+  ctx.save()
+  ctx.translate(508, 997)
+  ctx.strokeStyle = '#D0BA83'
+  ctx.fillStyle = 'rgba(219,196,143,0.12)'
+  ctx.lineWidth = 3.6
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(-60, 108)
+  ctx.bezierCurveTo(17, 57, 46, -61, 50, -138)
+  ctx.stroke()
+  const leaves = [
+    [-35, 88, -1.39, 77, 19], [-9, 56, 0.9, 111, 27],
+    [8, 24, -1.0, 116, 24], [23, -7, 0.86, 100, 22],
+    [35, -36, -0.9, 105, 21], [43, -66, 0.67, 78, 18],
+    [47, -96, -0.67, 76, 17], [50, -132, 0.23, 72, 17]
+  ]
+  leaves.forEach(([x, y, angle, len, wide]) => {
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.rotate(angle)
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+    ctx.quadraticCurveTo(-wide, -len * 0.54, 0, -len)
+    ctx.quadraticCurveTo(wide * 1.7, -len * 0.62, 0, 0)
+    ctx.fill()
+    ctx.stroke()
+    ctx.lineWidth = 1.6
+    ctx.beginPath()
+    ctx.moveTo(0, -7)
+    ctx.quadraticCurveTo(wide * 0.24, -len * 0.56, 0, -len + 6)
+    ctx.stroke()
+    ctx.restore()
+  })
+  ctx.restore()
 }
 
 // 月历格子的位置（逻辑坐标），绘制和点击命中共用
@@ -171,31 +256,33 @@ function createPainter() {
       const today = date.today()
       const data = store.getMonth(date.ym(y, m))
 
-      // 页眉：大号月份 | 英文月名 / 年
+      // 月份、年月和季节插画分成三块，留足日历正文的高度。
       ctx.textBaseline = 'alphabetic'
       ctx.textAlign = 'left'
       ctx.fillStyle = C.ink
-      ctx.font = '900 178px ' + SERIF
-      const num = '' + m
-      ctx.fillText(num, 104, 262)
-      const nx = 104 + ctx.measureText(num).width + 26
-      ctx.fillRect(nx, 124, 5, 138)
-      ctx.font = '700 54px ' + SANS
-      spaced(ctx, date.MONTH_EN[m - 1], nx + 30, 186, 5)
+      ctx.font = '400 150px ' + NUMERALS
+      ctx.fillText(String(m).padStart(2, '0'), GRID.x - 5, 230)
+      ctx.fillStyle = C.line2
+      ctx.fillRect(304, 107, 2, 118)
+      ctx.fillStyle = C.green
+      ctx.font = 'italic 56px ' + EDITORIAL
+      ctx.fillText(date.MONTH_EN[m - 1], 331, 168)
       ctx.fillStyle = C.ink2
-      ctx.font = '500 34px ' + SANS
-      ctx.fillText(y + ' · ' + date.MONTH_CN[m - 1], nx + 32, 246)
+      ctx.font = '400 31px ' + SANS
+      ctx.fillText(y + ' · ' + date.MONTH_CN[m - 1], 333, 219)
       ctx.save()
-      ctx.translate(880, 168)
-      ctx.rotate(0.12)
-      sticker(ctx, MONTH_ART[m - 1], -95, -95, 190)
+      ctx.translate(888, 159)
+      ctx.rotate(0.10)
+      sticker(ctx, MONTH_ART[m - 1], -78, -78, 156)
       ctx.restore()
 
       // 星期
       const names = date.weekNames(weekStart)
       const lay = layout(y, m, weekStart)
       const cw = GRID.w / 7
-      ctx.font = '600 26px ' + SANS
+      ctx.fillStyle = '#E2E9DC'
+      ctx.fillRect(GRID.x, GRID.y - 52, GRID.w, 52)
+      ctx.font = '500 30px ' + SANS
       ctx.textAlign = 'center'
       names.forEach((n, i) => {
         ctx.fillStyle = n.we ? C.terra : C.ink2
@@ -205,7 +292,7 @@ function createPainter() {
       // 周末底色、格线
       lay.cells.forEach(c => {
         if (c.inMonth && (c.wd === 0 || c.wd === 6)) {
-          ctx.fillStyle = 'rgba(221,201,164,0.2)'
+          ctx.fillStyle = 'rgba(189,143,127,0.075)'
           ctx.fillRect(c.x, c.y, c.w, c.h)
         }
       })
@@ -222,8 +309,8 @@ function createPainter() {
         ctx.lineTo(GRID.x + GRID.w, GRID.y + ch * r)
       }
       ctx.stroke()
-      ctx.strokeStyle = C.ink
-      ctx.lineWidth = 3
+      ctx.strokeStyle = C.line2
+      ctx.lineWidth = 2
       ctx.strokeRect(GRID.x, GRID.y, GRID.w, GRID.bottom - GRID.y)
 
       // 每一天
@@ -233,7 +320,7 @@ function createPainter() {
         const isToday = c.key === today.key
         const weekend = c.wd === 0 || c.wd === 6
         ctx.textAlign = 'left'
-        ctx.font = '700 34px ' + SERIF
+        ctx.font = '500 36px ' + NUMERALS
         const label = '' + c.d
         if (isToday) {
           ctx.fillStyle = C.terra
@@ -251,14 +338,14 @@ function createPainter() {
         const fest = date.festival(y, m, c.d)
         if (fest) {
           ctx.fillStyle = C.terra
-          ctx.font = '500 20px ' + SANS
+          ctx.font = '400 20px ' + SANS
           ctx.fillText(fest.slice(0, 3), c.x + 60, c.y + 38)
         }
         if (sum && sum.mood) sticker(ctx, 'mood-' + sum.mood, c.x + c.w - 56, c.y + 3, 54)
         const writing = !!draft && draft.d === c.d
         const text = writing ? draft.text : (sum ? sum.snip : '')
         const box = textBox(c)
-        ctx.font = CELL_FONT + 'px ' + HAND
+        ctx.font = CELL_FONT + 'px ' + SANS
         const lines = text ? wrap(ctx, text, box.w, Math.max(1, Math.floor(box.h / CELL_LINE))) : []
         // 直接写在格子里的用墨水色，从日页带过来的摘要淡一些
         ctx.fillStyle = writing || (sum && sum.plan) ? C.hand : C.ink2
@@ -280,9 +367,9 @@ function createPainter() {
       })
 
       ctx.fillStyle = C.faint
-      ctx.font = '500 19px ' + SANS
+      ctx.font = '400 22px ' + SANS
       ctx.textAlign = 'left'
-      spaced(ctx, '有页 · YOUPAGE', GRID.x, 1420, 4)
+      ctx.fillText('有页', GRID.x, 1418)
       return pixels(ctx, PW, PH)
     },
 
@@ -295,8 +382,8 @@ function createPainter() {
       const x0 = 70, x1 = LW - 120
       ctx.textAlign = 'left'
       ctx.fillStyle = C.ink
-      ctx.font = '700 44px ' + SANS
-      spaced(ctx, 'WEEKLY', x0, 118, 10)
+      ctx.font = 'italic 52px ' + EDITORIAL
+      ctx.fillText('Weekly', x0, 118)
       ctx.fillStyle = C.faint
       ctx.font = '500 26px ' + SANS
       ctx.fillText('____ / ____  —  ____ / ____', x0 + 380, 116)
@@ -315,7 +402,7 @@ function createPainter() {
         ctx.arc(x0 + 30, y + 40, 28, 0, Math.PI * 2)
         ctx.stroke()
         ctx.fillStyle = we ? C.terra : C.green
-        ctx.font = '700 30px ' + SERIF
+        ctx.font = '500 30px ' + SANS
         ctx.textAlign = 'center'
         ctx.fillText(n, x0 + 30, y + 51)
         ctx.textAlign = 'left'
@@ -346,103 +433,96 @@ function createPainter() {
         }
       })
       ctx.fillStyle = C.faint
-      ctx.font = '500 19px ' + SANS
-      spaced(ctx, '有页 · YOUPAGE', x0, 1420, 4)
+      ctx.font = '400 22px ' + SANS
+      ctx.fillText('有页', x0, 1420)
       return pixels(ctx, PW, PH)
     },
 
-    // 封皮：墨绿布面 + 图标上那片翻起的纸角
     cover(year) {
       const P = 1024
       const lw = 1024, lh = 1331
       const { ctx } = scratch(P, P)
       begin(ctx, P, P, lw, lh)
-      ctx.fillStyle = C.green
+      const cloth = ctx.createLinearGradient(0, 0, lw, lh)
+      cloth.addColorStop(0, '#426352')
+      cloth.addColorStop(0.52, '#294A3B')
+      cloth.addColorStop(1, '#182D26')
+      ctx.fillStyle = cloth
       ctx.fillRect(0, 0, lw, lh)
-      // 布纹：很淡的斜向细线
-      ctx.strokeStyle = 'rgba(255,255,255,0.035)'
+      ctx.fillStyle = 'rgba(8,25,18,0.24)'
+      ctx.fillRect(0, 0, 112, lh)
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)'
       ctx.lineWidth = 2
       ctx.beginPath()
-      for (let i = -lh; i < lw; i += 9) {
-        ctx.moveTo(i, 0)
-        ctx.lineTo(i + lh, lh)
+      for (let x = 4; x < lw; x += 7) {
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, lh)
+      }
+      for (let y = 4; y < lh; y += 9) {
+        ctx.moveTo(0, y)
+        ctx.lineTo(lw, y)
       }
       ctx.stroke()
-      const vig = ctx.createRadialGradient(lw * 0.45, lh * 0.4, 200, lw / 2, lh / 2, 950)
-      vig.addColorStop(0, 'rgba(255,255,255,0.07)')
-      vig.addColorStop(1, 'rgba(0,0,0,0.22)')
-      ctx.fillStyle = vig
-      ctx.fillRect(0, 0, lw, lh)
-      ctx.strokeStyle = 'rgba(252,240,218,0.2)'
-      ctx.lineWidth = 3
-      roundRect(ctx, 46, 46, lw - 92, lh - 92, 34)
+
+      ctx.strokeStyle = 'rgba(214,193,139,0.61)'
+      ctx.lineWidth = 2.8
+      roundRect(ctx, 136, 54, 832, 1223, 31)
+      ctx.stroke()
+      ctx.strokeStyle = 'rgba(214,193,139,0.31)'
+      ctx.lineWidth = 1.6
+      roundRect(ctx, 151, 69, 802, 1193, 25)
       ctx.stroke()
 
-      ctx.fillStyle = C.cream
+      foilLetter(ctx, '有', 376, 362, 163)
+      foilLetter(ctx, '页', 559, 357, 163)
       ctx.textAlign = 'center'
-      ctx.font = '900 168px ' + SERIF
-      ctx.fillText('有', lw / 2 - 110, 430)
-      ctx.fillText('页', lw / 2 + 110, 430)
-      ctx.font = '600 30px ' + SANS
-      ctx.textAlign = 'left'
-      ctx.fillStyle = 'rgba(252,240,218,0.75)'
-      const tw = 'YOUPAGE'.length * 36
-      spaced(ctx, 'YOUPAGE', lw / 2 - tw / 2 + 4, 510, 16)
-      ctx.textAlign = 'center'
-      ctx.fillStyle = '#E3A98C'
-      ctx.font = '700 44px ' + SERIF
-      ctx.fillText('' + year, lw / 2, 602)
-
-      // 纸角
-      ctx.save()
-      ctx.shadowColor = 'rgba(0,0,0,0.35)'
-      ctx.shadowBlur = 34
-      ctx.fillStyle = '#FCEED3'
-      ctx.beginPath()
-      ctx.moveTo(lw, 690)
-      ctx.bezierCurveTo(860, 980, 620, 1180, 300, lh)
-      ctx.lineTo(lw, lh)
-      ctx.closePath()
-      ctx.fill()
-      ctx.restore()
-      const curl = ctx.createLinearGradient(520, 1000, 660, 1150)
-      curl.addColorStop(0, 'rgba(160,120,60,0.34)')
-      curl.addColorStop(1, 'rgba(160,120,60,0)')
-      ctx.fillStyle = curl
-      ctx.beginPath()
-      ctx.moveTo(lw, 690)
-      ctx.bezierCurveTo(860, 980, 620, 1180, 300, lh)
-      ctx.lineTo(lw, lh)
-      ctx.closePath()
-      ctx.fill()
-      ctx.strokeStyle = C.green
-      ctx.lineCap = 'round'
-      ctx.lineWidth = 10
-      ctx.beginPath()
-      ctx.moveTo(640, 1172)
-      ctx.lineTo(800, 1130)
-      ctx.moveTo(668, 1226)
-      ctx.lineTo(776, 1200)
-      ctx.stroke()
-      ctx.fillStyle = C.terra
-      ctx.beginPath()
-      ctx.arc(884, 1196, 44, 0, Math.PI * 2)
-      ctx.fill()
+      ctx.textBaseline = 'alphabetic'
+      ctx.fillStyle = '#E1CB99'
+      ctx.font = 'italic 49px ' + EDITORIAL
+      ctx.fillText('YouPage', 551, 587)
+      ctx.fillRect(530, 633, 42, 2)
+      ctx.font = '400 41px ' + NUMERALS
+      ctx.fillText(String(year), 551, 702)
+      coverSprig(ctx)
       return pixels(ctx, P, P)
     },
 
-    // 月份索引标签
+    // 封二上半部露出布纹，下半部是塞票据的透明口袋。
+    lining() {
+      const P = 512
+      const { ctx } = scratch(P, P)
+      begin(ctx, P, P, P, P)
+      ctx.fillStyle = '#5B7765'
+      ctx.fillRect(0, 0, P, P)
+      ctx.fillStyle = 'rgba(21,45,33,0.17)'
+      ctx.fillRect(438, 0, 74, P)
+      const pocket = ctx.createLinearGradient(0, 280, 0, 512)
+      pocket.addColorStop(0, 'rgba(227,241,223,0.24)')
+      pocket.addColorStop(0.18, 'rgba(227,241,223,0.09)')
+      pocket.addColorStop(1, 'rgba(227,241,223,0.26)')
+      ctx.fillStyle = pocket
+      roundRect(ctx, 23, 286, 404, 203, 16)
+      ctx.fill()
+      ctx.strokeStyle = 'rgba(239,251,233,0.42)'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+      return pixels(ctx, P, P)
+    },
+
     tab(n, active) {
       const PW = 64, PH = 128
       const { ctx } = scratch(PW, PH)
       begin(ctx, PW, PH, 64, 96)
-      ctx.fillStyle = active ? C.green : C.greenSoft
+      const g = ctx.createLinearGradient(0, 0, 64, 96)
+      g.addColorStop(0, active ? '#547963' : '#D8E2D4')
+      g.addColorStop(1, active ? '#284B38' : '#B7CAB8')
+      ctx.fillStyle = g
       ctx.fillRect(0, 0, 64, 96)
-      ctx.fillStyle = active ? C.cream : C.green
+      ctx.fillStyle = active ? '#FFF8E8' : '#2D4A3A'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.font = '700 34px ' + SANS
-      ctx.fillText('' + n, 30, 50)
+      ctx.font = '500 34px ' + NUMERALS
+      ctx.fillText('' + n, 34, 50)
       ctx.textBaseline = 'alphabetic'
       return pixels(ctx, PW, PH)
     },
@@ -461,12 +541,7 @@ function createPainter() {
       ctx.arc(128, 128, 100, 0, Math.PI * 2)
       ctx.stroke()
       ctx.setLineDash([])
-      ctx.fillStyle = C.cream
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.font = '900 118px ' + SERIF
-      ctx.fillText('页', 128, 134)
-      ctx.textBaseline = 'alphabetic'
+      foilLetter(ctx, '页', 65, 59, 126)
       return pixels(ctx, P, P)
     },
 
@@ -595,10 +670,10 @@ function pageEdge(alongU) {
   const n = 16
   const data = new Uint8Array(n * 4)
   for (let i = 0; i < n; i++) {
-    const dark = i % 4 === 3
-    data[i * 4] = dark ? 214 : 246
-    data[i * 4 + 1] = dark ? 198 : 236
-    data[i * 4 + 2] = dark ? 166 : 214
+    const tint = i % 5 === 3 ? 23 : i % 3 * 4
+    data[i * 4] = 249 - tint
+    data[i * 4 + 1] = 246 - tint
+    data[i * 4 + 2] = 231 - tint
     data[i * 4 + 3] = 255
   }
   return alongU ? { data, width: n, height: 1 } : { data, width: 1, height: n }

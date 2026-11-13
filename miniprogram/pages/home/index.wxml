@@ -1,9 +1,11 @@
-<!-- 顶部：和桌面同色的一条，放提示 -->
 <view class="top" style="height:{{topH}}px">
-  <text wx:if="{{!ready}}" class="hint" style="top:{{navTop + 8}}px">正在翻开手帐…</text>
-  <view wx:elif="{{open && !isThisMonth && !ink}}" class="today-chip" style="top:{{navTop + 1}}px" bindtap="goToday">回到今天</view>
-  <text wx:elif="{{hint}}" class="hint" style="top:{{navTop}}px">点封面打开 · 点日期写字 · 横拖纸页翻月\n拉胶带卷撕一段 · 点挂件摇铃 · 拖动转视角</text>
-  <text wx:elif="{{ink}}" class="hint" style="top:{{navTop + 8}}px">字会直接写在这一格里</text>
+  <view class="masthead" style="top:{{navTop}}px">
+    <view class="masthead-mark"><image src="/assets/icons/book-light.svg" mode="aspectFit" /></view>
+    <text class="masthead-name">有页</text>
+    <text wx:if="{{!ready}}" class="masthead-status">正在加载…</text>
+    <text wx:elif="{{ink}}" class="masthead-status">月历笔记</text>
+    <text wx:elif="{{open}}" class="masthead-status">点日期写字</text>
+  </view>
 </view>
 
 <!-- 3D 场景 -->
@@ -19,11 +21,11 @@
   bindtouchcancel="onTouchEnd"
 ></canvas>
 
-<!-- 底部：贴纸条 + 一排按钮 -->
-<view wx:if="{{!ink}}" class="panel" style="height:{{panelH}}px">
+<!-- 贴纸夹和底部菜单与 WebGL 画布分开 -->
+<view wx:if="{{!ink}}" class="panel" style="height:{{panelH}}px;padding-bottom:{{safeBottom}}px">
   <!-- 第一次打开：先请用户看隐私政策 -->
   <view wx:if="{{consentAsk}}" class="consent">
-    <text class="c-t serif">欢迎来到有页</text>
+    <text class="c-t">欢迎来到有页</text>
     <view class="c-p">
       <text>你写下的内容和贴上的照片会保存在这台手机上；同意后还会同步到云端，换手机也能找回。使用前请阅读</text>
       <text class="c-a" data-doc="privacy" bindtap="openLegal">《隐私政策》</text>
@@ -44,42 +46,72 @@
     <text class="c-s">不同意也可以使用，内容只保存在这台手机上。</text>
   </view>
   <block wx:else>
-  <view wx:if="{{tray}}" class="tray">
-    <view class="tray-tabs">
-      <view wx:for="{{packs}}" wx:key="id" class="tray-tab {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">{{item.name}}</view>
-    </view>
-    <view class="tray-items">
-      <view
-        wx:for="{{items}}"
-        wx:key="k"
-        class="tray-item {{item.wide ? 'wide' : ''}}"
-        hover-class="tray-item-hover"
-        data-t="{{item.t}}"
-        data-k="{{item.k}}"
-        catchtouchstart="trayStart"
-        catchtouchmove="trayMove"
-        catchtouchend="trayEnd"
-        catchtouchcancel="trayEnd"
-      >
-        <image wx:if="{{item.src}}" class="tray-img" src="{{item.src}}" mode="aspectFit" />
-        <view wx:else class="tray-tape" style="{{item.css}}"></view>
+    <view wx:if="{{tray}}" class="tray">
+      <view class="tray-tabs">
+        <view wx:for="{{packs}}" wx:key="id" class="tray-tab {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">{{item.name}}</view>
+      </view>
+      <view class="tray-items">
+        <view
+          wx:for="{{items}}"
+          wx:key="k"
+          class="tray-item {{item.wide ? 'wide' : ''}}"
+          hover-class="tray-item-hover"
+          data-t="{{item.t}}"
+          data-k="{{item.k}}"
+          catchtouchstart="trayStart"
+          catchtouchmove="trayMove"
+          catchtouchend="trayEnd"
+          catchtouchcancel="trayEnd"
+        >
+          <image wx:if="{{item.src}}" class="tray-img" src="{{item.src}}" mode="aspectFit" />
+          <view wx:else class="tray-tape" style="{{item.css}}"></view>
+        </view>
       </view>
     </view>
-  </view>
-  <view class="pills">
-    <view class="pill" bindtap="toggleOpen">{{open ? '合上' : '打开封面'}}</view>
-    <view class="pill sq" data-n="-1" bindtap="shiftMonth">‹</view>
-    <view class="pill sq" data-n="1" bindtap="shiftMonth">›</view>
-    <view class="pill" bindtap="toggleTray">{{tray ? '收起' : '贴纸'}}</view>
-    <view class="pill light" bindtap="goHabits">打卡</view>
-    <view class="pill light" bindtap="goMe">我的</view>
-  </view>
+
+    <view class="month-rail">
+      <block wx:if="{{open}}">
+        <view class="rail-side" bindtap="toggleOpen" hover-class="control-pressed" role="button">合上</view>
+        <view class="month-picker">
+          <view class="month-arrow" data-n="-1" bindtap="shiftMonth" hover-class="control-pressed" role="button" aria-label="上个月"><view class="chev l"></view></view>
+          <view class="month-label">
+            <text class="month-number">{{m}}</text><text>月</text>
+            <text class="month-year">{{y}}</text>
+          </view>
+          <view class="month-arrow" data-n="1" bindtap="shiftMonth" hover-class="control-pressed" role="button" aria-label="下个月"><view class="chev r"></view></view>
+        </view>
+        <view wx:if="{{!isThisMonth}}" class="rail-side rail-today" bindtap="goToday" hover-class="control-pressed" role="button">今天</view>
+        <view wx:else class="rail-side"></view>
+      </block>
+      <view wx:else class="open-book" bindtap="openBook" hover-class="control-pressed" role="button">
+        <text>打开手帐</text><view class="chev r"></view>
+      </view>
+    </view>
+
+    <view class="dock">
+      <view class="dock-item {{tray ? '' : 'is-active'}}" bindtap="showBook" hover-class="control-pressed" role="button">
+        <view class="dock-icon"><image src="{{tray ? '/assets/icons/book.svg' : '/assets/icons/book-light.svg'}}" mode="aspectFit" /></view>
+        <text>手帐</text>
+      </view>
+      <view class="dock-item {{tray ? 'is-active' : ''}}" bindtap="toggleTray" hover-class="control-pressed" role="button" aria-label="{{tray ? '收起贴纸' : '打开贴纸'}}">
+        <view class="dock-icon"><image src="{{tray ? '/assets/icons/sticker-light.svg' : '/assets/icons/sticker.svg'}}" mode="aspectFit" /></view>
+        <text>贴纸</text>
+      </view>
+      <view class="dock-item" bindtap="goHabits" hover-class="control-pressed" role="button">
+        <view class="dock-icon"><image src="/assets/icons/seal.svg" mode="aspectFit" /></view>
+        <text>打卡</text>
+      </view>
+      <view class="dock-item" bindtap="goMe" hover-class="control-pressed" role="button">
+        <view class="dock-icon"><image src="/assets/icons/me.svg" mode="aspectFit" /></view>
+        <text>我的</text>
+      </view>
+    </view>
   </block>
 </view>
 
 <!-- 写字：输入栏贴着键盘 -->
 <view wx:else class="ink-bar" style="bottom:{{kb}}px;padding-bottom:{{kb ? 0 : safeBottom}}px">
-  <text class="ink-date serif">{{ink.title}}</text>
+  <text class="ink-date">{{ink.title}}</text>
   <input
     class="ink-in"
     value="{{ink.value}}"

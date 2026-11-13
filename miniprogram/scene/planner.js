@@ -1,4 +1,4 @@
-// 3D 活页手帐：桌面上的一本墨绿封皮六孔本，旁边放着一卷胶带。
+// 3D 活页手帐：一本套着透明书衣的墨绿六孔本，旁边放着一卷胶带。
 // 坐标单位是厘米。本子平放在 XY 平面上，+Z 朝向镜头；纸页占 x∈[0,W]、y∈[-H/2,H/2]。
 //
 // 对外接口（页面只和这些打交道）：
@@ -24,6 +24,7 @@ const catalog = require('../utils/catalog')
 const sound = require('../utils/sound')
 
 const W = 10.5, H = 14.8            // A6 纸页
+const DESK = 0xE9EBE4
 const CT = 0.2                      // 封皮厚
 const T = 1.1                       // 纸叠厚
 const PAGE_Z = CT + T               // 最上面一页的高度
@@ -38,7 +39,7 @@ const TAPE_W = 0.8                  // 胶带宽
 const TAPE_LEN = 4.4                // 撕下来的一段有多长
 const TAPE_TILE = 3.2               // 一块胶带花纹贴图代表多长
 // 胶带卷：平躺在本子右下方的桌上
-const ROLL = { x: 8.9, y: -9.15, r: 1.05, ri: 0.62, core: 0.52, h: 0.8 }
+const ROLL = { x: 9.8, y: -8.95, r: 1.0, ri: 0.62, core: 0.52, h: 0.74 }
 const TAIL_DIR = Math.atan2(0.06, -1) // 平时露在外面的那截胶带头朝左
 const STRIP_SEG = 16
 
@@ -71,7 +72,7 @@ class Planner {
     const renderer = this.renderer = new THREE.WebGLRenderer({ antialias: true })
     renderer.setPixelRatio(Math.min(opts.dpr || 2, 2))
     renderer.setSize(this.w, this.h, false)
-    renderer.setClearColor(0xF1DFC2, 1)
+    renderer.setClearColor(DESK, 1)
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     this.aniso = Math.min(4, renderer.capabilities.getMaxAnisotropy())
@@ -225,10 +226,10 @@ class Planner {
 
   buildLights() {
     const THREE = this.THREE
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xe6d8c0, 0.66))
-    // 左上方一盏暖色主光，像桌面平拍
-    const key = new THREE.DirectionalLight(0xfff0dc, 0.46)
-    key.position.set(-16, 20, 36)
+    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xd4dbce, 0.73))
+    // 左上方的漫射光让纸面和金属带有不同的质感。
+    const key = new THREE.DirectionalLight(0xfff6e7, 0.48)
+    key.position.set(-14, 16, 42)
     key.target.position.set(-1, 0, 0)
     key.castShadow = true
     key.shadow.mapSize.set(1024, 1024)
@@ -244,47 +245,104 @@ class Planner {
     this.scene.add(key, key.target)
   }
 
-  // 桌面本身不受光（颜色和页面背景 #F1DFC2 完全一致，画布和界面之间看不出接缝），
+  // 桌面本身不受光，和首页背景连成一片，
   // 上面再铺一层只显示影子的透明面
   buildDesk() {
     const THREE = this.THREE
     const geo = new THREE.PlaneBufferGeometry(400, 400)
-    this.scene.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xF1DFC2 })))
-    const shade = new THREE.Mesh(geo, new THREE.ShadowMaterial({ color: 0x5C4424, opacity: 0.3 }))
+    this.scene.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: DESK })))
+    const shade = new THREE.Mesh(geo, new THREE.ShadowMaterial({ color: 0x435046, opacity: 0.27 }))
     shade.position.z = 0.002
     shade.receiveShadow = true
     this.scene.add(shade)
+  }
+
+  // 书衣和内衬是两层独立的网格。透明面保留印刷细节，压边与反光随镜头角度变化。
+  sleeveMaterial() {
+    return new this.THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      vertexShader: `
+        varying vec2 coverUV;
+        varying vec3 viewNormal;
+        varying vec3 viewDir;
+
+        void main() {
+          coverUV = uv;
+          viewNormal = normalize(normalMatrix * normal);
+          vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+          viewDir = -viewPosition.xyz;
+          gl_Position = projectionMatrix * viewPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec2 coverUV;
+        varying vec3 viewNormal;
+        varying vec3 viewDir;
+
+        float band(float distanceToLine, float width) {
+          return 1.0 - smoothstep(0.0, width, abs(distanceToLine));
+        }
+
+        void main() {
+          vec2 p = coverUV;
+          vec3 view = normalize(viewDir);
+          float grazing = 1.0 - clamp(dot(view, normalize(viewNormal)), 0.0, 1.0);
+          vec2 corner = abs((p - 0.5) * vec2(0.77, 1.0)) - vec2(0.344, 0.459);
+          float edge = -(length(max(corner, 0.0)) + min(max(corner.x, corner.y), 0.0) - 0.035);
+          float seam = band(edge - 0.006, 0.006) * 0.48 + band(edge - 0.017, 0.003) * 0.22;
+          float weld = (band(p.x - 0.102, 0.004) + band(p.x - 0.907, 0.004)) * 0.24;
+          float reflection = p.x + 0.22 * (p.y - 0.5) * (p.y - 0.5) + view.x * 0.42;
+          float softbox = band(reflection - 0.27, 0.16) * smoothstep(0.22, 0.85, p.y) * 0.26;
+          softbox += band(reflection - 0.79, 0.045) * smoothstep(0.1, 0.88, p.y) * 0.17;
+          float lip = band(p.y - 0.973 - 0.004 * sin(p.x * 10.0), 0.024) * 0.25;
+          float opacity = 0.035 + seam + weld + softbox + lip + grazing * grazing * 0.45;
+          gl_FragColor = vec4(vec3(0.91, 0.98, 0.95), min(opacity, 0.8));
+        }
+      `
+    })
   }
 
   buildBook() {
     const THREE = this.THREE
     const book = this.book = new THREE.Group()
     this.scene.add(book)
-    const green = this.lambert(0x30533A)
-    const greenDeep = this.lambert(0x264631)
+    const green = this.lambert(0x335344)
+    const greenDeep = this.lambert(0x263F34)
     const shadow = m => {
       m.castShadow = true
       m.receiveShadow = true
       return m
     }
 
-    // 后封皮
-    const plateGeo = this.plate(COVER_W, COVER_H, 0.55, CT)
-    const back = shadow(new THREE.Mesh(plateGeo, [greenDeep, greenDeep]))
-    back.position.set(HX, 0, CT / 2)
+    const inset = 0.22
+    const insertW = COVER_W - 2 * inset, insertH = COVER_H - 2 * inset
+    const plateGeo = this.plate(insertW, insertH, 0.47, 0.13)
+    const sleeveGeo = this.plate(COVER_W, COVER_H, 0.55, CT + 0.055)
+    const sleeveMats = [
+      this.sleeveMaterial(),
+      new THREE.MeshBasicMaterial({ color: 0xB2C8BB, transparent: true, opacity: 0.68, depthWrite: false })
+    ]
+
+    // 后封皮的透明边缘在纸叠四周露出来。
+    const back = shadow(new THREE.Mesh(plateGeo, greenDeep))
+    back.position.set(HX + inset, 0, CT / 2 + 0.03)
     back.userData = { type: 'back' }
-    book.add(back)
+    const backSleeve = new THREE.Mesh(sleeveGeo, sleeveMats)
+    backSleeve.position.set(HX, 0, CT / 2 + 0.03)
+    backSleeve.renderOrder = 4
+    book.add(back, backSleeve)
 
     // 纸叠
     const edgeU = this.lambert(0, this.texture(draw.pageEdge(true), { repeat: [3, 1] }))
     const edgeV = this.lambert(0, this.texture(draw.pageEdge(false), { repeat: [1, 3] }))
-    const paper = this.lambert(0xFBF4E3)
+    const paper = this.lambert(0xFCF9EF)
     const stack = shadow(new THREE.Mesh(new THREE.BoxBufferGeometry(W, H, T), [edgeU, edgeU, edgeV, edgeV, paper, paper]))
     stack.position.set(W / 2, 0, CT + T / 2)
     book.add(stack)
 
     // 最上面的月历页；翻页时另一张贴图给另一个月用
-    const blank = { data: new Uint8Array([251, 244, 227, 255]), width: 1, height: 1 }
+    const blank = { data: new Uint8Array([252, 249, 239, 255]), width: 1, height: 1 }
     this.texTop = this.texture(blank)
     this.texSpare = this.texture(blank)
     const page = this.pageMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(W, H), this.lambert(0, this.texTop))
@@ -295,10 +353,10 @@ class Planner {
 
     // 活页环
     const metal = new THREE.MeshMatcapMaterial({ matcap: this.texture(draw.matcap(128)) })
-    const base = new THREE.Mesh(new THREE.BoxBufferGeometry(0.9, H * 0.74, 0.1), metal)
-    base.position.set(RING_X - 0.35, 0, CT + 0.05)
+    const base = new THREE.Mesh(this.plate(0.68, H * 0.72, 0.18, 0.1), metal)
+    base.position.set(RING_X - 0.73, 0, CT + 0.05)
     book.add(base)
-    const ringGeo = new THREE.TorusBufferGeometry(RING_R, 0.075, 10, 40)
+    const ringGeo = new THREE.TorusBufferGeometry(RING_R, 0.065, 10, 40)
     draw.RINGF.forEach(f => {
       const ring = new THREE.Mesh(ringGeo, metal)
       ring.rotation.x = Math.PI / 2
@@ -310,12 +368,15 @@ class Planner {
     // 月份索引标签，贴在纸叠右缘
     this.tabs = []
     const th = (H - 1.0) / 12
-    const tabGeo = new THREE.PlaneBufferGeometry(0.74, th - 0.07)
+    const tabGeo = this.plate(0.82, th - 0.13, 0.18, 0.04)
     for (let i = 0; i < 12; i++) {
-      const tab = new THREE.Mesh(tabGeo, new THREE.MeshLambertMaterial({ map: this.texture(this.painter.tab(i + 1, false)) }))
-      tab.position.set(W + 0.3, H / 2 - 0.5 - th * (i + 0.5), PAGE_Z - 0.03)
+      const tab = new THREE.Mesh(tabGeo, [
+        this.lambert(0, this.texture(this.painter.tab(i + 1, false))),
+        this.lambert(0x8A9D8D)
+      ])
+      tab.position.set(W - 0.12, H / 2 - 0.5 - th * (i + 0.5), PAGE_Z - 0.035)
       tab.castShadow = true
-      tab.userData = { type: 'tab', m: i + 1, on: this.texture(this.painter.tab(i + 1, true)), off: tab.material.map }
+      tab.userData = { type: 'tab', m: i + 1, on: this.texture(this.painter.tab(i + 1, true)), off: tab.material[0].map }
       this.tabs.push(tab)
       book.add(tab)
     }
@@ -323,8 +384,7 @@ class Planner {
     // 书脊和前封皮：两道铰链，合上时书脊竖着、封皮盖在纸上；打开后一起摊平在左边
     const spineG = this.spineG = new THREE.Group()
     spineG.position.set(HX, 0, CT / 2)
-    const spine = shadow(new THREE.Mesh(new THREE.BoxBufferGeometry(SPINE, COVER_H - 0.2, CT), greenDeep))
-    spine.position.x = SPINE / 2
+    const spine = shadow(new THREE.Mesh(this.plate(SPINE, COVER_H - 0.2, 0.19, CT), greenDeep))
     spine.userData = { type: 'cover' }
     spineG.add(spine)
     const coverG = this.coverG = new THREE.Group()
@@ -332,11 +392,14 @@ class Planner {
     spineG.add(coverG)
     const art = this.lambert(0, this.texture(this.painter.cover(this.opts.year || this.state.y)))
     const cover = shadow(new THREE.Mesh(plateGeo, [art, green]))
+    cover.position.x = inset
     cover.userData = { type: 'cover' }
-    coverG.add(cover)
-    // 封二：盖住内侧镜像的封面图
-    const inner = new THREE.Mesh(new THREE.PlaneBufferGeometry(COVER_W - 0.16, COVER_H - 0.16), this.lambert(0xE9DBBC))
-    inner.position.set(COVER_W / 2, 0, -CT / 2 - 0.004)
+    const coverSleeve = new THREE.Mesh(sleeveGeo, sleeveMats)
+    coverSleeve.renderOrder = 4
+    coverG.add(cover, coverSleeve)
+    const inner = new THREE.Mesh(this.plate(insertW, insertH, 0.47, 0.002),
+      this.lambert(0, this.texture(this.painter.lining())))
+    inner.position.set(COVER_W - inset, 0, -0.068)
     inner.rotation.y = Math.PI
     inner.receiveShadow = true
     inner.userData = { type: 'cover' }
@@ -386,23 +449,22 @@ class Planner {
     const THREE = this.THREE
     const charm = this.charm = new THREE.Group()
     const metal = new THREE.MeshMatcapMaterial({ matcap: this.texture(draw.matcap(64)) })
-    const chain = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.035, 0.035, 2.6, 6), metal)
-    chain.position.y = 1.3
+    const chain = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.035, 0.035, 1.5, 6), metal)
+    chain.position.y = 0.75
     const loop = new THREE.Mesh(new THREE.TorusBufferGeometry(0.2, 0.04, 6, 20), metal)
-    loop.position.y = 2.7
-    const side = this.lambert(0xB25B33)
+    loop.position.y = 1.52
+    const side = this.lambert(0x9C6556)
     const face = this.lambert(0, this.texture(this.painter.seal()))
-    const disc = new THREE.Mesh(new THREE.CylinderBufferGeometry(1.05, 1.05, 0.14, 40), [side, face, side])
+    const disc = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.78, 0.78, 0.14, 40), [side, face, side])
     // 圆柱端面的贴图坐标是横着的：先绕自身轴转 90° 再立起来，印面上的「页」字才是正的
     disc.rotation.set(Math.PI / 2, Math.PI / 2, 0)
-    disc.position.y = 3.85
+    disc.position.y = 2.31
     disc.castShadow = true
     disc.userData = { type: 'charm' }
     charm.add(chain, loop, disc)
-    this.charmRest = -0.45
-    charm.rotation.z = this.charmRest
-    // 平躺在本子上方的桌面上，链子从封皮上缘伸出去
-    charm.position.set(HX + 1.4, COVER_H / 2 + 0.02, 0.2)
+    this.charmSwing = 0
+    this.poseCharm()
+    charm.position.set(HX + 0.2, COVER_H / 2 - 1.15, 0.29)
     this.scene.add(charm)
     this.pickables.push(disc)
   }
@@ -519,7 +581,12 @@ class Planner {
     this.state.t = t
     this.spineG.rotation.y = -(Math.PI / 2) * (1 + t)
     this.coverG.rotation.y = (Math.PI / 2) * (1 - t)
+    if (this.charm) this.poseCharm()
     this.dirty = true
+  }
+
+  poseCharm() {
+    this.charm.rotation.z = 0.82 - 0.54 * this.state.t + this.charmSwing
   }
 
   /* ---------- 月历页 ---------- */
@@ -554,8 +621,8 @@ class Planner {
   updateTabs() {
     this.tabs.forEach(tab => {
       const on = tab.userData.m === this.state.m
-      tab.material.map = on ? tab.userData.on : tab.userData.off
-      tab.position.x = W + (on ? 0.36 : 0.3)
+      tab.material[0].map = on ? tab.userData.on : tab.userData.off
+      tab.position.x = W + (on ? -0.015 : -0.12)
     })
     this.updateLeft(this.state.m)
   }
@@ -567,7 +634,7 @@ class Planner {
     this.leftBox.scale.z = thick
     this.leftBox.position.z = CT + thick / 2
     this.leftTop.position.z = CT + thick + 0.006
-    this.leftG.visible = this.state.open && this.state.t > 0.97 && n > 0
+    this.leftG.visible = this.state.open && this.state.t > 0.97
     this.dirty = true
   }
 
@@ -968,19 +1035,21 @@ class Planner {
     }, done)
   }
 
-  // 让该看到的东西摆满画布：合上时是整本 + 挂件 + 胶带卷，翻开时是纸页 + 胶带卷
+  // 竖屏让月历保持可读，横屏给左右页都留出位置。
   frame(animate) {
     const s = this.state
-    const bottom = ROLL.y - ROLL.r - 0.45
-    const b = s.open
-      ? [-1.2, W + 1.8, bottom, COVER_H / 2 + 0.5]
-      : [HX - 1.2, HX + COVER_W + 1.2, bottom, COVER_H / 2 + 4.9]
+    const spread = s.open && this.w >= 560 && this.w / this.h >= 1.02
+    const left = spread ? HX - SPINE - COVER_W - 0.65 : s.open ? -2.1 : -3.6
+    const right = s.open ? W + 1.25 : 12
+    const bottom = ROLL.y - ROLL.r - 0.7
+    const top = s.open ? COVER_H / 2 + 0.75 : COVER_H / 2 + 1.6
     const tanV = Math.tan(FOV * DEG / 2), tanH = tanV * (this.w / this.h)
     const to = {
-      az: 0, el: -0.2,
-      dist: Math.max((b[1] - b[0]) / 2 / tanH, (b[3] - b[2]) / 2 / tanV),
-      tx: (b[0] + b[1]) / 2,
-      ty: (b[2] + b[3]) / 2,
+      az: s.open ? 0 : 0.075,
+      el: s.open ? -0.095 : -0.16,
+      dist: Math.max((right - left) / 2 / tanH, (top - bottom) / 2 / tanV),
+      tx: (left + right) / 2,
+      ty: (bottom + top) / 2,
       tz: s.open ? PAGE_Z : 1
     }
     if (animate) this.rigTo(to, 900)
@@ -1228,11 +1297,14 @@ class Planner {
   }
 
   swing() {
-    const rest = this.charmRest
     sound.play('bell')
     this.tween(2200, k => {
-      this.charm.rotation.z = rest + 0.42 * Math.exp(-3.2 * k) * Math.sin(k * 17)
-    }, null, k => k)
+      this.charmSwing = 0.42 * Math.exp(-3.2 * k) * Math.sin(k * 17)
+      this.poseCharm()
+    }, () => {
+      this.charmSwing = 0
+      this.poseCharm()
+    }, k => k)
   }
 
   /* ---------- 动画循环 ---------- */

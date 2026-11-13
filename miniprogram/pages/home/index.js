@@ -11,9 +11,9 @@ const consent = require('../../utils/consent')
 const { Planner } = require('../../scene/planner')
 
 const TAPE_PACK = { id: 'tape', name: '胶带', vip: false }
-const PILLS_H = 62   // 底部按钮一行的高度
-const TRAY_H = 148   // 贴纸条的高度
-const CONSENT_H = 206 // 第一次打开时的同意卡片
+const DOCK_H = 118  // 翻月栏和底部菜单
+const TRAY_H = 137  // 贴纸夹
+const CONSENT_H = 218 // 第一次打开时的同意卡片
 const INK_H = 54     // 写字时输入栏的高度
 const LIFT = 44      // 拖贴纸时，贴纸悬在手指上方多少 px
 
@@ -22,14 +22,13 @@ Page({
     navTop: 28,
     topH: 72,
     glH: 500,
-    panelH: PILLS_H,
+    panelH: DOCK_H,
     safeBottom: 0,
     ready: false,
     open: false,
     y: 0,
     m: 0,
     isThisMonth: true,
-    hint: true,
     tray: false,
     packs: catalog.PACKS.map(p => ({ id: p.id, name: p.name, vip: p.vip })).concat(TAPE_PACK),
     packIdx: 0,
@@ -51,10 +50,11 @@ Page({
     this.winH = info.windowHeight
     this.dpr = info.pixelRatio
     const safeBottom = info.safeArea ? Math.max(0, info.screenHeight - info.safeArea.bottom) : 0
-    const topH = navTop + 40
+    const topH = navTop + 42
     // 还没对这一版隐私政策做过选择：底部先放同意卡片
     const consentAsk = !consent.get().decided
-    const panelH = (consentAsk ? CONSENT_H : PILLS_H) + safeBottom
+    this.consentH = CONSENT_H + (this.winW < 350 ? 22 : 0)
+    const panelH = (consentAsk ? this.consentH : DOCK_H) + safeBottom
     this.setData({
       navTop, topH, safeBottom, consentAsk, panelH,
       glH: this.winH - topH - panelH,
@@ -118,7 +118,7 @@ Page({
   // 底部占多高，画布就让出多高
   layout(patch) {
     const d = Object.assign({}, this.data, patch)
-    const panelH = d.consentAsk ? CONSENT_H + d.safeBottom : PILLS_H + d.safeBottom + (d.tray ? TRAY_H : 0)
+    const panelH = (d.consentAsk ? this.consentH : DOCK_H + (d.tray ? TRAY_H : 0)) + d.safeBottom
     const bottom = d.ink ? INK_H + (d.kb || d.safeBottom) : panelH
     const glH = Math.max(160, this.winH - d.topH - bottom)
     this.setData(Object.assign({ panelH, glH }, patch))
@@ -127,9 +127,8 @@ Page({
 
   onPlanner(type, p) {
     if (type === 'open') {
-      // 翻开时把贴纸条也摆出来；合上就收起
-      if (p !== this.data.tray) this.layout({ open: p, hint: false, tray: p })
-      else this.setData({ open: p, hint: false })
+      if (!p && this.data.tray) this.layout({ open: false, tray: false })
+      else this.setData({ open: p })
     } else if (type === 'month') this.setData({ y: p.y, m: p.m, isThisMonth: this.isThisMonth(p.y, p.m) })
     else if (type === 'tab') this.planner.setMonth(this.data.y, p)
     else if (type === 'cell') this.startInk(p)
@@ -168,6 +167,15 @@ Page({
 
   toggleOpen() {
     if (this.planner) this.planner.setOpen(!this.data.open)
+  },
+
+  openBook() {
+    if (this.planner) this.planner.setOpen(true)
+  },
+
+  showBook() {
+    if (this.data.tray) this.layout({ tray: false })
+    this.openBook()
   },
 
   shift(n) {
@@ -227,8 +235,8 @@ Page({
     if (!this.planner) return
     const tray = !this.data.tray
     if (tray && !this.data.open) {
-      this.planner.setOpen(true) // 翻开后会自己把贴纸条摆出来
-      return
+      this.planner.setOpen(true)
+      if (!this.data.open) return
     }
     this.layout({ tray })
   },
@@ -286,7 +294,7 @@ Page({
     const d = date.parse(p.key)
     this.inkValue = day.plan
     this.planner.setDraft(p.d, day.plan)
-    this.layout({ ink: { key: p.key, d: p.d, value: day.plan, title: d.m + '月' + d.d + '日' }, hint: false, kb: 0 })
+    this.layout({ ink: { key: p.key, d: p.d, value: day.plan, title: d.m + '月' + d.d + '日' }, kb: 0 })
   },
 
   onInk(e) {

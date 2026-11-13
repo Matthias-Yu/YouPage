@@ -2,10 +2,10 @@
   <view class="paper page-paper">
     <!-- 页眉 -->
     <view class="hd">
-      <text class="hd-d serif {{isToday ? 'today' : ''}}">{{d}}</text>
+      <text class="hd-d {{isToday ? 'today' : ''}}">{{d}}</text>
       <view class="hd-meta">
-        <text class="hd-en">{{monthEn}} · 周{{wd}}</text>
-        <text class="hd-lu">{{lunarText}}<text wx:if="{{fest}}" class="hd-fest">{{lunarText ? ' · ' : ''}}{{fest}}</text></text>
+        <text class="hd-en">{{monthEn}}</text>
+        <text class="hd-lu">周{{wd}}<text wx:if="{{lunarText}}"> · {{lunarText}}</text><text wx:if="{{fest}}" class="hd-fest"> · {{fest}}</text></text>
       </view>
       <view class="stamps">
         <view class="stamp {{moodSrc ? 'filled' : ''}}" data-sheet="mood" catchtap="openSheet">
@@ -28,7 +28,7 @@
     <!-- 待办 -->
     <view class="sec">
       <view class="sec-t">
-        <text class="serif">今日待办</text>
+        <text>今日待办</text>
         <text wx:if="{{todos.length}}" class="sec-n">{{doneN}} / {{todos.length}}</text>
       </view>
       <view wx:for="{{todos}}" wx:key="id" class="todo {{item.done ? 'done' : ''}}">
@@ -54,7 +54,7 @@
 
     <!-- 随手记 -->
     <view class="sec">
-      <view class="sec-t"><text class="serif">随手记</text></view>
+      <view class="sec-t"><text>随手记</text></view>
       <textarea
         class="note"
         value="{{note}}"
@@ -74,19 +74,19 @@
 
 <!-- 工具栏 -->
 <view class="bar">
-  <view class="round-btn" data-n="-1" bindtap="shift"><view class="chev l"></view></view>
+  <view class="round-btn" data-n="-1" bindtap="shift" role="button" aria-label="前一天"><view class="chev l"></view></view>
   <view class="tools">
-    <view class="tool" data-sheet="sticker" bindtap="openSheet">
+    <view class="tool" data-sheet="sticker" bindtap="openSheet" role="button">
       <image class="tool-ic" src="/assets/icons/sticker.svg" /><text>贴纸</text>
     </view>
-    <view class="tool" data-sheet="tape" bindtap="openSheet">
+    <view class="tool" data-sheet="tape" bindtap="openSheet" role="button">
       <image class="tool-ic" src="/assets/icons/tape.svg" /><text>胶带</text>
     </view>
-    <view class="tool" bindtap="pickPhoto">
+    <view class="tool" bindtap="pickPhoto" role="button">
       <image class="tool-ic" src="/assets/icons/photo.svg" /><text>照片</text>
     </view>
   </view>
-  <view class="round-btn" data-n="1" bindtap="shift"><view class="chev r"></view></view>
+  <view class="round-btn" data-n="1" bindtap="shift" role="button" aria-label="后一天"><view class="chev r"></view></view>
 </view>
 
 <!-- 抽屉 -->
