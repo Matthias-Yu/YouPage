@@ -16,6 +16,15 @@ function walk(dir, out) {
 }
 const files = walk(root, [])
 
+console.log('== main package budget (uncompiled source)')
+const mainLimit = 1500000
+const mediaLimit = 200000
+const mainBytes = files.reduce((sum, file) => sum + fs.statSync(file).size, 0)
+ok(mainBytes <= mainLimit, `main package source: ${mainBytes} / ${mainLimit} bytes`)
+const media = files.filter(file => /\.(jpe?g|png|svg|webp|gif|flac|m4a|ogg|ape|amr|wma|wav|mp3|mp4|aac|aiff|caf)$/i.test(file))
+const mediaBytes = media.reduce((sum, file) => sum + fs.statSync(file).size, 0)
+ok(mediaBytes <= mediaLimit, `packaged images and audio: ${mediaBytes} / ${mediaLimit} bytes (${media.length} files)`)
+
 console.log('== syntax')
 for (const f of files.filter(f => /\.(js|wxs)$/.test(f))) {
   try { new vm.Script(fs.readFileSync(f, 'utf8'), { filename: f }) } catch (e) { fail++; console.log('  FAIL ' + f + ': ' + e.message) }

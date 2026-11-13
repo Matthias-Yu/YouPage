@@ -236,8 +236,10 @@ function createPainter() {
   function sticker(ctx, key, x, y, size) {
     const cell = atlasImg && atlas.map[key]
     if (!cell) return
-    const c = atlas.cell
-    ctx.drawImage(atlasImg, cell[0] * c, cell[1] * c, c, c, x, y, size, size)
+    // 云端原图和包内备用图共用索引，像素尺寸可能不同。
+    const w = atlasImg.width * atlas.cell / atlas.width
+    const h = atlasImg.height * atlas.cell / atlas.height
+    ctx.drawImage(atlasImg, cell[0] * w, cell[1] * h, w, h, x, y, size, size)
   }
 
   return {
