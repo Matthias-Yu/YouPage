@@ -1,4 +1,4 @@
-// 3D 活页手帐：一本套着透明书衣的墨绿六孔本，旁边放着一卷胶带。
+// 3D 活页手帐：一本茶色透明六孔本，旁边放着一卷胶带。
 // 坐标单位是厘米。本子平放在 XY 平面上，+Z 朝向镜头；纸页占 x∈[0,W]、y∈[-H/2,H/2]。
 //
 // 对外接口（页面只和这些打交道）：
@@ -257,11 +257,12 @@ class Planner {
     this.scene.add(shade)
   }
 
-  // 书衣和内衬是两层独立的网格。透明面保留印刷细节，压边与反光随镜头角度变化。
-  sleeveMaterial() {
+  // 染色 PVC 透出下方纸张和活页环。压边、口袋的接缝和窗光共用一张透明面。
+  sleeveMaterial(tint) {
     return new this.THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
+      uniforms: { tint: { value: tint } },
       vertexShader: `
         varying vec2 coverUV;
         varying vec3 viewNormal;
@@ -279,25 +280,41 @@ class Planner {
         varying vec2 coverUV;
         varying vec3 viewNormal;
         varying vec3 viewDir;
+        uniform float tint;
 
         float band(float distanceToLine, float width) {
-          return 1.0 - smoothstep(0.0, width, abs(distanceToLine));
+          float distance = distanceToLine / width;
+          return exp(-distance * distance);
         }
 
         void main() {
           vec2 p = coverUV;
           vec3 view = normalize(viewDir);
           float grazing = 1.0 - clamp(dot(view, normalize(viewNormal)), 0.0, 1.0);
-          vec2 corner = abs((p - 0.5) * vec2(0.77, 1.0)) - vec2(0.344, 0.459);
-          float edge = -(length(max(corner, 0.0)) + min(max(corner.x, corner.y), 0.0) - 0.035);
-          float seam = band(edge - 0.006, 0.006) * 0.48 + band(edge - 0.017, 0.003) * 0.22;
-          float weld = (band(p.x - 0.102, 0.004) + band(p.x - 0.907, 0.004)) * 0.24;
-          float reflection = p.x + 0.22 * (p.y - 0.5) * (p.y - 0.5) + view.x * 0.42;
-          float softbox = band(reflection - 0.27, 0.16) * smoothstep(0.22, 0.85, p.y) * 0.26;
-          softbox += band(reflection - 0.79, 0.045) * smoothstep(0.1, 0.88, p.y) * 0.17;
-          float lip = band(p.y - 0.973 - 0.004 * sin(p.x * 10.0), 0.024) * 0.25;
-          float opacity = 0.035 + seam + weld + softbox + lip + grazing * grazing * 0.45;
-          gl_FragColor = vec4(vec3(0.91, 0.98, 0.95), min(opacity, 0.8));
+          vec2 corner = abs((p - 0.5) * vec2(0.77, 1.0)) - vec2(0.34, 0.455);
+          float edge = -(length(max(corner, 0.0)) + min(max(corner.x, corner.y), 0.0) - 0.038);
+          float rim = band(edge, 0.007) * 0.64 + band(edge - 0.018, 0.003) * 0.40;
+          float pocket = smoothstep(0.38, 0.383, p.x) * (1.0 - smoothstep(0.91, 0.913, p.x))
+            * (1.0 - smoothstep(0.41, 0.414, p.y));
+          float seams = band(p.x - 0.135, 0.0035) * 0.29 + band(p.x - 0.91, 0.003) * 0.23;
+          seams += band(p.y - 0.413, 0.0035) * smoothstep(0.37, 0.40, p.x)
+            * (1.0 - smoothstep(0.89, 0.92, p.x)) * 0.25;
+
+          float sweep = p.x + 0.045 * sin(p.y * 13.0) + 0.12 * p.y * p.y + view.x * 0.58;
+          float gloss = band(sweep - 0.20, 0.037) * (0.18 + 0.28 * p.y);
+          gloss += band(sweep - 0.60, 0.075) * smoothstep(0.40, 0.90, p.y) * 0.24;
+          gloss += band(sweep - 0.96, 0.034) * 0.17;
+          float top = p.y - 0.925 + 0.028 * sin(p.x * 11.0) + view.y * 0.24;
+          gloss += band(top, 0.026) * smoothstep(0.05, 0.32, p.x)
+            * (1.0 - smoothstep(0.73, 0.98, p.x)) * 0.33;
+
+          float shine = clamp(rim + seams + gloss + grazing * grazing * 0.44, 0.0, 0.90);
+          float shade = tint + pocket * 0.12;
+          float opacity = shine + shade * (1.0 - shine);
+          vec3 amber = mix(vec3(0.34, 0.17, 0.055), vec3(0.19, 0.073, 0.032), pocket * 0.6);
+          vec3 highlight = vec3(1.0, 0.91, 0.72);
+          vec3 color = mix(amber, highlight, shine / max(opacity, 0.001));
+          gl_FragColor = vec4(color, opacity);
         }
       `
     })
@@ -307,28 +324,26 @@ class Planner {
     const THREE = this.THREE
     const book = this.book = new THREE.Group()
     this.scene.add(book)
-    const green = this.lambert(0x335344)
-    const greenDeep = this.lambert(0x263F34)
+    const chestnut = this.lambert(0x70421F)
     const shadow = m => {
       m.castShadow = true
       m.receiveShadow = true
       return m
     }
 
-    const inset = 0.22
+    const inset = 0.18
     const insertW = COVER_W - 2 * inset, insertH = COVER_H - 2 * inset
-    const plateGeo = this.plate(insertW, insertH, 0.47, 0.13)
-    const sleeveGeo = this.plate(COVER_W, COVER_H, 0.55, CT + 0.055)
-    const sleeveMats = [
-      this.sleeveMaterial(),
-      new THREE.MeshBasicMaterial({ color: 0xB2C8BB, transparent: true, opacity: 0.68, depthWrite: false })
-    ]
+    const plateGeo = this.plate(insertW, insertH, 0.52, 0.13)
+    const sleeveGeo = this.plate(COVER_W, COVER_H, 0.64, CT + 0.065)
+    const sleeveEdge = new THREE.MeshBasicMaterial({
+      color: 0xA8753C, transparent: true, opacity: 0.63, depthWrite: false
+    })
 
     // 后封皮的透明边缘在纸叠四周露出来。
-    const back = shadow(new THREE.Mesh(plateGeo, greenDeep))
+    const back = shadow(new THREE.Mesh(plateGeo, chestnut))
     back.position.set(HX + inset, 0, CT / 2 + 0.03)
     back.userData = { type: 'back' }
-    const backSleeve = new THREE.Mesh(sleeveGeo, sleeveMats)
+    const backSleeve = new THREE.Mesh(sleeveGeo, [this.sleeveMaterial(0.20), sleeveEdge])
     backSleeve.position.set(HX, 0, CT / 2 + 0.03)
     backSleeve.renderOrder = 4
     book.add(back, backSleeve)
@@ -352,7 +367,7 @@ class Planner {
     book.add(page)
 
     // 活页环
-    const metal = new THREE.MeshMatcapMaterial({ matcap: this.texture(draw.matcap(128)) })
+    const metal = new THREE.MeshMatcapMaterial({ color: 0xE8CB9B, matcap: this.texture(draw.matcap(128)) })
     const base = new THREE.Mesh(this.plate(0.68, H * 0.72, 0.18, 0.1), metal)
     base.position.set(RING_X - 0.73, 0, CT + 0.05)
     book.add(base)
@@ -384,29 +399,45 @@ class Planner {
     // 书脊和前封皮：两道铰链，合上时书脊竖着、封皮盖在纸上；打开后一起摊平在左边
     const spineG = this.spineG = new THREE.Group()
     spineG.position.set(HX, 0, CT / 2)
-    const spine = shadow(new THREE.Mesh(this.plate(SPINE, COVER_H - 0.2, 0.19, CT), greenDeep))
+    const spine = shadow(new THREE.Mesh(this.plate(SPINE, COVER_H - 0.2, 0.19, CT), chestnut))
     spine.userData = { type: 'cover' }
     spineG.add(spine)
+    const welt = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.066, 0.066, COVER_H - 0.4, 12), metal)
+    welt.position.set(SPINE - 0.08, 0, 0.12)
+    spineG.add(welt)
     const coverG = this.coverG = new THREE.Group()
     coverG.position.x = SPINE
     spineG.add(coverG)
-    const art = this.lambert(0, this.texture(this.painter.cover(this.opts.year || this.state.y)))
-    const cover = shadow(new THREE.Mesh(plateGeo, [art, green]))
-    cover.position.x = inset
+    const cover = new THREE.Mesh(sleeveGeo, [this.sleeveMaterial(0.34), sleeveEdge])
     cover.userData = { type: 'cover' }
-    const coverSleeve = new THREE.Mesh(sleeveGeo, sleeveMats)
-    coverSleeve.renderOrder = 4
-    coverG.add(cover, coverSleeve)
-    const inner = new THREE.Mesh(this.plate(insertW, insertH, 0.47, 0.002),
-      this.lambert(0, this.texture(this.painter.lining())))
-    inner.position.set(COVER_W - inset, 0, -0.068)
-    inner.rotation.y = Math.PI
-    inner.receiveShadow = true
-    inner.userData = { type: 'cover' }
-    coverG.add(inner)
-    book.add(spineG)
-    this.setOpenT(0)
+    cover.renderOrder = 4
+    const print = new THREE.Mesh(new THREE.PlaneBufferGeometry(COVER_W, COVER_H),
+      new THREE.MeshBasicMaterial({
+        map: this.texture(this.painter.coverPrint()), transparent: true, depthWrite: false
+      }))
+    print.position.set(COVER_W / 2, 0, (CT + 0.065) / 2 + 0.006)
+    print.renderOrder = 5
+    const lining = new THREE.Mesh(new THREE.PlaneBufferGeometry(insertW, insertH),
+      new THREE.MeshBasicMaterial({
+        map: this.texture(this.painter.lining()), transparent: true, opacity: 0.67, depthWrite: false
+      }))
+    lining.position.set(COVER_W / 2, 0, -(CT + 0.065) / 2 - 0.004)
+    lining.rotation.y = Math.PI
+    lining.renderOrder = 5
+    coverG.add(cover, print, lining)
+    this.buildElastic(coverG, metal)
 
+    // 扉页留在活页环内。翻起封面时随动画露出下面的月历。
+    const titlePage = this.titlePage = new THREE.Mesh(new THREE.PlaneBufferGeometry(W - 0.46, H),
+      new THREE.MeshLambertMaterial({
+        map: this.texture(this.painter.coverInsert(this.opts.year || this.state.y)),
+        transparent: true, depthWrite: false
+      }))
+    titlePage.position.set((W + 0.46) / 2, 0, PAGE_Z + 0.018)
+    titlePage.renderOrder = 3
+    titlePage.receiveShadow = true
+    book.add(titlePage)
+    book.add(spineG)
     // 翻页用的那张纸（会弯）。正面是月历，背面印着周计划
     const backImg = this.painter.back()
     const texBack = this.texture(backImg)
@@ -442,29 +473,56 @@ class Planner {
     this.stickerG.position.z = PAGE_Z + 0.03
     book.add(this.stickerG)
 
-    this.pickables = [cover, inner, spine, page, back].concat(this.tabs)
+    this.pickables = [cover, spine, page, back].concat(this.tabs)
+    this.setOpenT(0)
+  }
+
+  buildElastic(cover, metal) {
+    const THREE = this.THREE
+    const elastic = this.elastic = new THREE.Group()
+    elastic.position.set(COVER_W - 0.12, -2.10, 0)
+    const path = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-COVER_W + 0.08, 0.04, 0.18),
+      new THREE.Vector3(-COVER_W + 1.2, 0.015, 0.19),
+      new THREE.Vector3(-COVER_W * 0.50, 0, 0.19),
+      new THREE.Vector3(-0.75, 0.02, 0.19),
+      new THREE.Vector3(0.08, 0.08, 0.155),
+      new THREE.Vector3(0.17, 0.17, -0.04),
+      new THREE.Vector3(0.055, 0.30, -0.55)
+    ])
+    const band = new THREE.Mesh(new THREE.TubeBufferGeometry(path, 48, 0.053, 9, false),
+      this.lambert(0xFFEFCD))
+    band.castShadow = true
+    const stud = new THREE.Mesh(new THREE.SphereBufferGeometry(0.16, 16, 10), metal)
+    stud.scale.z = 0.34
+    stud.position.set(0.015, 0.15, 0.16)
+    elastic.add(band, stud)
+    cover.add(elastic)
   }
 
   buildCharm() {
     const THREE = this.THREE
     const charm = this.charm = new THREE.Group()
-    const metal = new THREE.MeshMatcapMaterial({ matcap: this.texture(draw.matcap(64)) })
-    const chain = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.035, 0.035, 1.5, 6), metal)
-    chain.position.y = 0.75
-    const loop = new THREE.Mesh(new THREE.TorusBufferGeometry(0.2, 0.04, 6, 20), metal)
-    loop.position.y = 1.52
-    const side = this.lambert(0x9C6556)
-    const face = this.lambert(0, this.texture(this.painter.seal()))
-    const disc = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.78, 0.78, 0.14, 40), [side, face, side])
-    // 圆柱端面的贴图坐标是横着的：先绕自身轴转 90° 再立起来，印面上的「页」字才是正的
+    const metal = new THREE.MeshMatcapMaterial({ color: 0xDFC29D, matcap: this.texture(draw.matcap(64)) })
+    const ring = new THREE.Mesh(new THREE.TorusBufferGeometry(0.32, 0.052, 10, 30), metal)
+    ring.scale.y = 1.3
+    ring.position.y = 0.34
+    const loop = new THREE.Mesh(new THREE.TorusBufferGeometry(0.20, 0.041, 8, 24), metal)
+    loop.position.y = 1.0
+    const bell = new THREE.Mesh(new THREE.SphereBufferGeometry(0.23, 20, 16), metal)
+    bell.position.set(-0.52, 1.56, 0.095)
+    const side = this.lambert(0xB79670)
+    const face = this.lambert(0, this.texture(this.painter.charm()))
+    const disc = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.96, 0.96, 0.15, 40), [side, face, side])
     disc.rotation.set(Math.PI / 2, Math.PI / 2, 0)
-    disc.position.y = 2.31
     disc.castShadow = true
     disc.userData = { type: 'charm' }
-    charm.add(chain, loop, disc)
+    const pendant = this.pendant = new THREE.Group()
+    pendant.position.y = 1.98
+    pendant.add(disc)
+    charm.add(ring, loop, pendant, bell)
     this.charmSwing = 0
     this.poseCharm()
-    charm.position.set(HX + 0.2, COVER_H / 2 - 1.15, 0.29)
     this.scene.add(charm)
     this.pickables.push(disc)
   }
@@ -581,12 +639,22 @@ class Planner {
     this.state.t = t
     this.spineG.rotation.y = -(Math.PI / 2) * (1 + t)
     this.coverG.rotation.y = (Math.PI / 2) * (1 - t)
+    const release = easeOut(clamp(t / 0.65, 0, 1))
+    this.elastic.scale.x = 1 - 0.87 * release
+    this.elastic.rotation.y = -0.26 * release
+    this.titlePage.material.opacity = 1 - clamp((t - 0.12) / 0.46, 0, 1)
+    this.titlePage.visible = t < 0.58
+    this.stickerG.visible = !this.titlePage.visible
     if (this.charm) this.poseCharm()
     this.dirty = true
   }
 
   poseCharm() {
-    this.charm.rotation.z = 0.82 - 0.54 * this.state.t + this.charmSwing
+    const t = this.state.t
+    const angle = -2.42 + 2.66 * t
+    this.charm.position.set(HX + 0.37 - 0.16 * t, COVER_H / 2 - 1.26 + 0.48 * t, 1.99 - 1.65 * t)
+    this.charm.rotation.z = angle + this.charmSwing
+    this.pendant.rotation.z = -angle
   }
 
   /* ---------- 月历页 ---------- */

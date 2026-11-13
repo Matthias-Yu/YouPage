@@ -110,85 +110,89 @@ function paperBase(ctx, w, h, holeX) {
   })
 }
 
-// 封面和挂件共用「页」的手写字形。以 100 × 100 的坐标绘制，保证各端印样一致。
-function foilLetter(ctx, letter, x, y, size) {
+// 透明封面上的米白印花：一只抱着书打瞌睡的狐狸。
+function coverFox(ctx) {
   ctx.save()
-  ctx.translate(x, y)
-  ctx.scale(size / 100, size / 100)
-  ctx.strokeStyle = '#E1CB99'
+  ctx.translate(566, 582)
+  ctx.strokeStyle = '#FFEDCC'
+  ctx.lineWidth = 3.8
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  ctx.lineWidth = 4.1
-  ctx.beginPath()
-  if (letter === '有') {
-    ctx.moveTo(10, 29)
-    ctx.quadraticCurveTo(49, 28, 91, 24)
-    ctx.moveTo(53, 9)
-    ctx.bezierCurveTo(44, 34, 33, 52, 9, 69)
-    ctx.moveTo(37, 48)
-    ctx.quadraticCurveTo(37, 77, 32, 92)
-    ctx.moveTo(38, 47)
-    ctx.quadraticCurveTo(57, 43, 76, 44)
-    ctx.quadraticCurveTo(77, 68, 73, 88)
-    ctx.quadraticCurveTo(71, 98, 60, 90)
-    ctx.moveTo(38, 61)
-    ctx.lineTo(75, 58)
-    ctx.moveTo(37, 74)
-    ctx.lineTo(75, 71)
-  } else {
-    ctx.moveTo(13, 23)
-    ctx.quadraticCurveTo(48, 20, 87, 19)
-    ctx.moveTo(50, 22)
-    ctx.quadraticCurveTo(48, 33, 42, 41)
-    ctx.moveTo(25, 43)
-    ctx.quadraticCurveTo(26, 58, 24, 73)
-    ctx.moveTo(25, 44)
-    ctx.quadraticCurveTo(49, 39, 76, 39)
-    ctx.quadraticCurveTo(78, 55, 75, 71)
-    ctx.moveTo(51, 53)
-    ctx.bezierCurveTo(51, 72, 42, 87, 14, 95)
-    ctx.moveTo(57, 78)
-    ctx.quadraticCurveTo(77, 87, 87, 95)
-  }
-  ctx.stroke()
-  ctx.restore()
-}
 
-// 封面烫印的枝叶。叶片各自旋转，细线刻出叶脉。
-function coverSprig(ctx) {
-  ctx.save()
-  ctx.translate(508, 997)
-  ctx.strokeStyle = '#D0BA83'
-  ctx.fillStyle = 'rgba(219,196,143,0.12)'
-  ctx.lineWidth = 3.6
-  ctx.lineCap = 'round'
+  // 头、耳朵和耳内的短线。
   ctx.beginPath()
-  ctx.moveTo(-60, 108)
-  ctx.bezierCurveTo(17, 57, 46, -61, 50, -138)
+  ctx.moveTo(-132, 64)
+  ctx.bezierCurveTo(-179, 46, -198, 4, -145, -39)
+  ctx.quadraticCurveTo(-161, -83, -151, -143)
+  ctx.quadraticCurveTo(-103, -131, -67, -86)
+  ctx.quadraticCurveTo(-20, -100, 27, -83)
+  ctx.quadraticCurveTo(60, -122, 104, -133)
+  ctx.quadraticCurveTo(119, -89, 109, -44)
+  ctx.bezierCurveTo(159, -5, 154, 42, 103, 61)
+  ctx.moveTo(-137, -114)
+  ctx.quadraticCurveTo(-111, -105, -88, -81)
+  ctx.moveTo(47, -77)
+  ctx.quadraticCurveTo(67, -101, 93, -108)
   ctx.stroke()
-  const leaves = [
-    [-35, 88, -1.39, 77, 19], [-9, 56, 0.9, 111, 27],
-    [8, 24, -1.0, 116, 24], [23, -7, 0.86, 100, 22],
-    [35, -36, -0.9, 105, 21], [43, -66, 0.67, 78, 18],
-    [47, -96, -0.67, 76, 17], [50, -132, 0.23, 72, 17]
-  ]
-  leaves.forEach(([x, y, angle, len, wide]) => {
-    ctx.save()
-    ctx.translate(x, y)
-    ctx.rotate(angle)
-    ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.quadraticCurveTo(-wide, -len * 0.54, 0, -len)
-    ctx.quadraticCurveTo(wide * 1.7, -len * 0.62, 0, 0)
-    ctx.fill()
-    ctx.stroke()
-    ctx.lineWidth = 1.6
-    ctx.beginPath()
-    ctx.moveTo(0, -7)
-    ctx.quadraticCurveTo(wide * 0.24, -len * 0.56, 0, -len + 6)
-    ctx.stroke()
-    ctx.restore()
-  })
+
+  // 眼睛、鼻子和脸颊。
+  ctx.beginPath()
+  ctx.moveTo(-126, 6)
+  ctx.quadraticCurveTo(-103, 29, -80, 9)
+  ctx.moveTo(36, 11)
+  ctx.quadraticCurveTo(57, 31, 80, 10)
+  ctx.moveTo(-49, 46)
+  ctx.quadraticCurveTo(-24, 43, -4, 47)
+  ctx.quadraticCurveTo(-11, 59, -26, 61)
+  ctx.quadraticCurveTo(-41, 58, -49, 46)
+  ctx.moveTo(-26, 61)
+  ctx.quadraticCurveTo(-32, 75, -47, 72)
+  ctx.moveTo(-26, 61)
+  ctx.quadraticCurveTo(-19, 75, -4, 73)
+  ctx.moveTo(-142, 30)
+  ctx.lineTo(-152, 36)
+  ctx.moveTo(102, 34)
+  ctx.lineTo(112, 41)
+  ctx.stroke()
+
+  // 尾巴从书后绕过来，末端留一条浅色分界。
+  ctx.beginPath()
+  ctx.moveTo(92, 83)
+  ctx.bezierCurveTo(146, 114, 205, 93, 217, 41)
+  ctx.bezierCurveTo(224, 11, 209, -3, 184, -4)
+  ctx.bezierCurveTo(198, 19, 179, 45, 152, 51)
+  ctx.moveTo(137, 143)
+  ctx.bezierCurveTo(202, 145, 233, 99, 217, 41)
+  ctx.moveTo(167, 46)
+  ctx.quadraticCurveTo(175, 64, 201, 66)
+  ctx.stroke()
+
+  // 两只爪子搭着摊开的书。
+  ctx.beginPath()
+  ctx.moveTo(-122, 103)
+  ctx.quadraticCurveTo(-123, 63, -101, 64)
+  ctx.quadraticCurveTo(-83, 65, -87, 105)
+  ctx.moveTo(55, 99)
+  ctx.quadraticCurveTo(53, 63, 75, 64)
+  ctx.quadraticCurveTo(94, 67, 91, 96)
+  ctx.moveTo(-162, 96)
+  ctx.quadraticCurveTo(-91, 90, -26, 130)
+  ctx.quadraticCurveTo(54, 87, 126, 96)
+  ctx.lineTo(107, 181)
+  ctx.quadraticCurveTo(38, 176, -25, 212)
+  ctx.quadraticCurveTo(-93, 175, -147, 182)
+  ctx.closePath()
+  ctx.moveTo(-26, 131)
+  ctx.lineTo(-25, 212)
+  ctx.moveTo(-132, 127)
+  ctx.quadraticCurveTo(-93, 127, -53, 147)
+  ctx.moveTo(0, 148)
+  ctx.quadraticCurveTo(46, 127, 93, 126)
+  ctx.moveTo(-128, 149)
+  ctx.quadraticCurveTo(-94, 149, -55, 167)
+  ctx.moveTo(3, 169)
+  ctx.quadraticCurveTo(46, 149, 88, 147)
+  ctx.stroke()
   ctx.restore()
 }
 
@@ -438,72 +442,65 @@ function createPainter() {
       return pixels(ctx, PW, PH)
     },
 
-    cover(year) {
-      const P = 1024
-      const lw = 1024, lh = 1331
-      const { ctx } = scratch(P, P)
-      begin(ctx, P, P, lw, lh)
-      const cloth = ctx.createLinearGradient(0, 0, lw, lh)
-      cloth.addColorStop(0, '#426352')
-      cloth.addColorStop(0.52, '#294A3B')
-      cloth.addColorStop(1, '#182D26')
-      ctx.fillStyle = cloth
-      ctx.fillRect(0, 0, lw, lh)
-      ctx.fillStyle = 'rgba(8,25,18,0.24)'
-      ctx.fillRect(0, 0, 112, lh)
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)'
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      for (let x = 4; x < lw; x += 7) {
-        ctx.moveTo(x, 0)
-        ctx.lineTo(x, lh)
-      }
-      for (let y = 4; y < lh; y += 9) {
-        ctx.moveTo(0, y)
-        ctx.lineTo(lw, y)
-      }
-      ctx.stroke()
+    // 茶色书衣下的扉页。留白印在纸上，插画印在上层塑料上。
+    coverInsert(year) {
+      const PW = 512, PH = 1024
+      const { ctx } = scratch(PW, PH)
+      begin(ctx, PW, PH, 512, 720)
+      const kraft = ctx.createLinearGradient(20, 0, 480, 720)
+      kraft.addColorStop(0, '#A47448')
+      kraft.addColorStop(0.5, '#85502B')
+      kraft.addColorStop(1, '#633719')
+      ctx.fillStyle = kraft
+      ctx.fillRect(0, 0, 512, 720)
 
-      ctx.strokeStyle = 'rgba(214,193,139,0.61)'
-      ctx.lineWidth = 2.8
-      roundRect(ctx, 136, 54, 832, 1223, 31)
-      ctx.stroke()
-      ctx.strokeStyle = 'rgba(214,193,139,0.31)'
-      ctx.lineWidth = 1.6
-      roundRect(ctx, 151, 69, 802, 1193, 25)
-      ctx.stroke()
+      const gutter = ctx.createLinearGradient(0, 0, 70, 0)
+      gutter.addColorStop(0, 'rgba(44,21,10,0.34)')
+      gutter.addColorStop(1, 'rgba(44,21,10,0)')
+      ctx.fillStyle = gutter
+      ctx.fillRect(0, 0, 70, 720)
 
-      foilLetter(ctx, '有', 376, 362, 163)
-      foilLetter(ctx, '页', 559, 357, 163)
+      ctx.fillStyle = '#331C12'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'alphabetic'
-      ctx.fillStyle = '#E1CB99'
-      ctx.font = 'italic 49px ' + EDITORIAL
-      ctx.fillText('YouPage', 551, 587)
-      ctx.fillRect(530, 633, 42, 2)
-      ctx.font = '400 41px ' + NUMERALS
-      ctx.fillText(String(year), 551, 702)
-      coverSprig(ctx)
+      ctx.font = '500 70px ' + EDITORIAL
+      ctx.fillText(String(year), 257, 137)
+      ctx.font = '500 16px ' + SANS
+      ctx.fillText('有页手帐', 257, 168)
+      return pixels(ctx, PW, PH)
+    },
+
+    coverPrint() {
+      const P = 1024
+      const { ctx } = scratch(P, P)
+      begin(ctx, P, P, 1024, 1331)
+      ctx.clearRect(0, 0, 1024, 1331)
+      coverFox(ctx)
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'alphabetic'
+      ctx.fillStyle = '#FFEDCC'
+      ctx.font = 'italic 46px ' + EDITORIAL
+      ctx.fillText('YouPage', 545, 1028)
       return pixels(ctx, P, P)
     },
 
-    // 封二上半部露出布纹，下半部是塞票据的透明口袋。
+    // 封二的奶油纸衬和半透口袋，口袋开口远离装订边。
     lining() {
       const P = 512
       const { ctx } = scratch(P, P)
       begin(ctx, P, P, P, P)
-      ctx.fillStyle = '#5B7765'
+      const paper = ctx.createLinearGradient(32, 0, 506, 512)
+      paper.addColorStop(0, '#FAECD4')
+      paper.addColorStop(1, '#C2A078')
+      ctx.fillStyle = paper
       ctx.fillRect(0, 0, P, P)
-      ctx.fillStyle = 'rgba(21,45,33,0.17)'
-      ctx.fillRect(438, 0, 74, P)
-      const pocket = ctx.createLinearGradient(0, 280, 0, 512)
-      pocket.addColorStop(0, 'rgba(227,241,223,0.24)')
-      pocket.addColorStop(0.18, 'rgba(227,241,223,0.09)')
-      pocket.addColorStop(1, 'rgba(227,241,223,0.26)')
+      const pocket = ctx.createLinearGradient(0, 284, 0, 510)
+      pocket.addColorStop(0, 'rgba(123,72,33,0.10)')
+      pocket.addColorStop(1, 'rgba(123,72,33,0.38)')
       ctx.fillStyle = pocket
-      roundRect(ctx, 23, 286, 404, 203, 16)
+      roundRect(ctx, 22, 287, 440, 198, 13)
       ctx.fill()
-      ctx.strokeStyle = 'rgba(239,251,233,0.42)'
+      ctx.strokeStyle = 'rgba(255,247,225,0.68)'
       ctx.lineWidth = 1.5
       ctx.stroke()
       return pixels(ctx, P, P)
@@ -527,21 +524,33 @@ function createPainter() {
       return pixels(ctx, PW, PH)
     },
 
-    // 挂件：一枚赤陶色的小印章
-    seal() {
+    // 奶油色亚克力挂件，印一枚和封面插画呼应的脚印。
+    charm() {
       const P = 256
       const { ctx } = scratch(P, P)
       begin(ctx, P, P, P, P)
-      ctx.fillStyle = C.terra
+      ctx.fillStyle = '#F8E8CF'
       ctx.fillRect(0, 0, P, P)
-      ctx.strokeStyle = 'rgba(252,240,218,0.85)'
-      ctx.lineWidth = 4
-      ctx.setLineDash([7, 9])
+      ctx.strokeStyle = '#B48A60'
+      ctx.lineWidth = 2.6
       ctx.beginPath()
-      ctx.arc(128, 128, 100, 0, Math.PI * 2)
+      ctx.arc(128, 128, 102, 0, Math.PI * 2)
       ctx.stroke()
-      ctx.setLineDash([])
-      foilLetter(ctx, '页', 65, 59, 126)
+      ctx.fillStyle = '#9E623A'
+      ctx.beginPath()
+      ctx.moveTo(81, 152)
+      ctx.bezierCurveTo(94, 140, 99, 111, 128, 111)
+      ctx.bezierCurveTo(153, 111, 161, 137, 175, 154)
+      ctx.bezierCurveTo(190, 179, 164, 194, 144, 181)
+      ctx.quadraticCurveTo(128, 172, 112, 181)
+      ctx.bezierCurveTo(91, 194, 66, 177, 81, 152)
+      ctx.fill()
+      const toes = [[78, 103, 14], [109, 80, 16], [148, 80, 16], [178, 103, 14]]
+      toes.forEach(([x, y, r]) => {
+        ctx.beginPath()
+        ctx.arc(x, y, r, 0, Math.PI * 2)
+        ctx.fill()
+      })
       return pixels(ctx, P, P)
     },
 
