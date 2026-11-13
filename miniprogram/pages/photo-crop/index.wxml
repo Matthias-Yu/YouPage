@@ -1,0 +1,46 @@
+<view class="editor">
+  <view class="modes">
+    <button class="mode {{mode === 'free' ? 'selected' : ''}}" data-mode="free" bindtap="setMode" disabled="{{saving}}">手绘轮廓</button>
+    <button class="mode {{mode === 'mask' ? 'selected' : ''}}" data-mode="mask" bindtap="setMode" disabled="{{saving}}">形状蒙版</button>
+  </view>
+
+  <view class="stage">
+    <canvas
+      type="2d"
+      id="crop-preview"
+      class="preview"
+      disable-scroll
+      catchtouchstart="onTouchStart"
+      catchtouchmove="onTouchMove"
+      catchtouchend="onTouchEnd"
+      catchtouchcancel="onTouchCancel"
+    ></canvas>
+    <text wx:if="{{!ready}}" class="loading">{{loadFailed ? '无法预览照片，可直接使用原图' : '正在读取照片…'}}</text>
+  </view>
+
+  <view class="adjustments {{mode === 'mask' ? 'mask-controls' : ''}}">
+    <block wx:if="{{mode === 'free'}}">
+      <text class="hint">{{hasOutline ? '虚线内的内容会被保留' : '沿要保留的部分画一圈，松手自动闭合并平滑'}}</text>
+      <button wx:if="{{hasOutline}}" class="reset" bindtap="resetOutline" disabled="{{saving}}">重画</button>
+    </block>
+    <block wx:else>
+      <view class="masks">
+        <button wx:for="{{masks}}" wx:key="id" class="mask-choice {{shape === item.id ? 'selected' : ''}}" data-shape="{{item.id}}" bindtap="setShape" disabled="{{saving}}">
+          <text class="mask-icon">{{item.icon}}</text><text>{{item.name}}</text>
+        </button>
+      </view>
+      <view class="size-control">
+        <text>大小</text>
+        <slider min="20" max="100" value="{{size}}" activeColor="#365C48" backgroundColor="#CFD9CD" block-size="18" bindchanging="setSize" bindchange="setSize" disabled="{{!ready || saving}}" />
+      </view>
+      <text class="hint">拖动照片上的蒙版调整位置</text>
+    </block>
+  </view>
+
+  <view class="actions">
+    <button class="secondary" bindtap="cancel" disabled="{{saving}}">取消</button>
+    <button class="secondary" bindtap="useOriginal" disabled="{{(!ready && !loadFailed) || saving}}">使用原图</button>
+    <button class="primary {{!ready || saving || (mode === 'free' && !hasOutline) ? 'unavailable' : ''}}" bindtap="applyCrop" loading="{{saving}}" disabled="{{!ready || saving || (mode === 'free' && !hasOutline)}}">裁切并贴上</button>
+  </view>
+  <canvas type="2d" id="crop-export" class="export"></canvas>
+</view>

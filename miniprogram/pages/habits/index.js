@@ -6,14 +6,14 @@ const member = require('../../utils/member')
 const sync = require('../../utils/sync')
 
 const PRESETS = [
-  { name: '早起', icon: 'wx-sunny' },
-  { name: '喝水', icon: 'coffee' },
-  { name: '阅读', icon: 'book' },
-  { name: '运动', icon: 'dumbbell' },
-  { name: '早睡', icon: 'moon' },
-  { name: '学习', icon: 'pencil' },
-  { name: '吃水果', icon: 'apple' },
-  { name: '记账', icon: 'coin' }
+  { name: '早起', icon: 's37' },
+  { name: '喝水', icon: 's28' },
+  { name: '阅读', icon: 'ins05' },
+  { name: '运动', icon: 's21' },
+  { name: '早睡', icon: 's50' },
+  { name: '学习', icon: 's03' },
+  { name: '吃水果', icon: 's34' },
+  { name: '记账', icon: 's06' }
 ]
 
 Page({
@@ -26,6 +26,8 @@ Page({
     sheet: false,
     name: '',
     icon: catalog.HABIT_ICONS[0],
+    iconSrc: catalog.src(catalog.HABIT_ICONS[0]),
+    emptySrc: catalog.src('s01'),
     icons: catalog.HABIT_ICONS.map(k => ({ k, src: catalog.src(k) })),
     presets: PRESETS,
     freeLimit: member.FREE_LIMITS.habits,
@@ -55,6 +57,10 @@ Page({
 
   setSheet(open) {
     this.setData({ sheet: open })
+  },
+
+  selectIcon(icon, patch) {
+    this.setData({ ...patch, icon, iconSrc: catalog.src(icon) })
   },
 
   render() {
@@ -150,7 +156,7 @@ Page({
       })
       return
     }
-    this.setData({ name: '', icon: catalog.HABIT_ICONS[0] })
+    this.selectIcon(catalog.HABIT_ICONS[0], { name: '' })
     this.setSheet(true)
   },
 
@@ -163,12 +169,12 @@ Page({
   },
 
   pickIcon(e) {
-    this.setData({ icon: e.currentTarget.dataset.k })
+    this.selectIcon(e.currentTarget.dataset.k)
   },
 
   pickPreset(e) {
     const p = PRESETS[e.currentTarget.dataset.i]
-    this.setData({ name: p.name, icon: p.icon })
+    this.selectIcon(p.icon, { name: p.name })
   },
 
   create() {

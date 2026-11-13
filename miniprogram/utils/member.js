@@ -9,7 +9,7 @@ const FREE_LIMITS = { habits: 3 }
 
 // 会员页展示的权益。ready=false 的是规划中、尚未实现的功能
 const BENEFITS = [
-  { icon: 'milktea', title: '全部贴纸包', desc: '吃喝、字签，以及之后每月上新的主题包', ready: true },
+  { icon: 'milktea', title: '全部贴纸包', desc: '吃喝、拼贴，以及之后每月上新的主题包', ready: true },
   { icon: 'seal', title: '打卡不限数量', desc: '免费版可建 ' + FREE_LIMITS.habits + ' 个习惯，会员不设上限', ready: true },
   { icon: 'wx-cloudy', title: '云端同步', desc: '换手机、删小程序都不丢，多设备同一本手帐', ready: true },
   { icon: 'mail', title: '导出长图 / PDF', desc: '把某一天或一整月做成图片，发朋友圈、发小红书', ready: false },

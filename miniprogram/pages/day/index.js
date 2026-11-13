@@ -62,6 +62,13 @@ Page({
     this.load(query.date || date.today().key)
   },
 
+  onShow() {
+    const photo = this.pendingPhoto
+    if (!photo) return
+    this.pendingPhoto = null
+    this.addEl('p', photo.path, photo.ratio)
+  },
+
   onHide() {
     this.flush()
   },
@@ -230,27 +237,27 @@ Page({
   },
 
   pickPhoto() {
+    if (this.pickingPhoto) return
+    this.pickingPhoto = true
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sizeType: ['compressed'],
       success: res => {
-        const tmp = res.tempFiles[0].tempFilePath
-        const ext = (tmp.match(/\.\w+$/) || ['.jpg'])[0]
-        const dest = wx.env.USER_DATA_PATH + '/' + newId('photo_') + ext
-        // 存进小程序自己的文件目录，否则临时文件会被清掉
-        wx.getFileSystemManager().saveFile({
-          tempFilePath: tmp,
-          filePath: dest,
-          success: r => this.addEl('p', r.savedFilePath || dest),
-          fail: () => this.addEl('p', tmp)
+        const photo = res.tempFiles && res.tempFiles[0]
+        if (!photo) return
+        wx.navigateTo({
+          url: '/pages/photo-crop/index?src=' + encodeURIComponent(photo.tempFilePath),
+          events: { photo: result => { this.pendingPhoto = result } },
+          fail: () => wx.showToast({ title: '打不开照片裁切工具', icon: 'none' })
         })
-      }
+      },
+      complete: () => { this.pickingPhoto = false }
     })
   },
 
   // 新元素落在当前屏幕中间偏上的位置，带一点随机的歪斜
-  addEl(t, k) {
+  addEl(t, k, ratio) {
     wx.createSelectorQuery().selectViewport().scrollOffset(res => {
       const scrollTop = res ? res.scrollTop : 0
       const pw = this.data.pw
@@ -265,6 +272,7 @@ Page({
         s: 1,
         r: tilt
       }
+      if (ratio) el.ratio = ratio
       this.setData({ els: this.data.els.concat(el), sheet: '' }, () => {
         const deco = this.selectComponent('#deco')
         if (deco) deco.select(el.id)

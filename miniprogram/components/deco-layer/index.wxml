@@ -16,7 +16,7 @@
       data-id="{{item.id}}"
       catchtap="onTapEl"
     >
-      <image wx:if="{{item.t === 's'}}" class="art" src="{{item.src}}" mode="aspectFit" />
+      <image wx:if="{{item.t === 's' || item.cutout}}" class="art" src="{{item.src}}" mode="aspectFit" />
       <view wx:elif="{{item.t === 't'}}" class="tape" style="{{item.css}}"></view>
       <view wx:else class="photo">
         <image class="photo-img" src="{{item.src}}" mode="aspectFill" />

@@ -2,6 +2,7 @@
   "pages": [
     "pages/home/index",
     "pages/day/index",
+    "pages/photo-crop/index",
     "pages/habits/index",
     "pages/me/index",
     "pages/member/index",

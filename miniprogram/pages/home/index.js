@@ -11,9 +11,10 @@ const consent = require('../../utils/consent')
 const { Planner } = require('../../scene/planner')
 
 const TAPE_PACK = { id: 'tape', name: '胶带', vip: false }
-const PILLS_H = 62   // 底部按钮一行的高度
-const TRAY_H = 148   // 贴纸条的高度
-const CONSENT_H = 206 // 第一次打开时的同意卡片
+const DOCK_H = 118  // 翻月栏和底部菜单
+const TRAY_H = 164  // 贴纸夹（含翻页）
+const STICKERS_PER_PAGE = 12
+const CONSENT_H = 218 // 第一次打开时的同意卡片
 const INK_H = 54     // 写字时输入栏的高度
 const LIFT = 44      // 拖贴纸时，贴纸悬在手指上方多少 px
 
@@ -22,17 +23,18 @@ Page({
     navTop: 28,
     topH: 72,
     glH: 500,
-    panelH: PILLS_H,
+    panelH: DOCK_H,
     safeBottom: 0,
     ready: false,
     open: false,
     y: 0,
     m: 0,
     isThisMonth: true,
-    hint: true,
     tray: false,
     packs: catalog.PACKS.map(p => ({ id: p.id, name: p.name, vip: p.vip })).concat(TAPE_PACK),
     packIdx: 0,
+    trayPage: 0,
+    trayPages: 1,
     items: [],
     ink: null,
     kb: 0,
@@ -51,15 +53,16 @@ Page({
     this.winH = info.windowHeight
     this.dpr = info.pixelRatio
     const safeBottom = info.safeArea ? Math.max(0, info.screenHeight - info.safeArea.bottom) : 0
-    const topH = navTop + 40
+    const topH = navTop + 42
     // 还没对这一版隐私政策做过选择：底部先放同意卡片
     const consentAsk = !consent.get().decided
-    const panelH = (consentAsk ? CONSENT_H : PILLS_H) + safeBottom
+    this.consentH = CONSENT_H + (this.winW < 350 ? 22 : 0)
+    const panelH = (consentAsk ? this.consentH : DOCK_H) + safeBottom
     this.setData({
       navTop, topH, safeBottom, consentAsk, panelH,
       glH: this.winH - topH - panelH,
       y: t.y, m: t.m,
-      items: this.packItems(0)
+      ...this.packPage(0, 0)
     })
     // 云端有新内容拉下来了：重画纸页
     this.offSync = sync.subscribe(type => {
@@ -118,7 +121,7 @@ Page({
   // 底部占多高，画布就让出多高
   layout(patch) {
     const d = Object.assign({}, this.data, patch)
-    const panelH = d.consentAsk ? CONSENT_H + d.safeBottom : PILLS_H + d.safeBottom + (d.tray ? TRAY_H : 0)
+    const panelH = (d.consentAsk ? this.consentH : DOCK_H + (d.tray ? TRAY_H : 0)) + d.safeBottom
     const bottom = d.ink ? INK_H + (d.kb || d.safeBottom) : panelH
     const glH = Math.max(160, this.winH - d.topH - bottom)
     this.setData(Object.assign({ panelH, glH }, patch))
@@ -127,9 +130,8 @@ Page({
 
   onPlanner(type, p) {
     if (type === 'open') {
-      // 翻开时把贴纸条也摆出来；合上就收起
-      if (p !== this.data.tray) this.layout({ open: p, hint: false, tray: p })
-      else this.setData({ open: p, hint: false })
+      if (!p && this.data.tray) this.layout({ open: false, tray: false })
+      else this.setData({ open: p })
     } else if (type === 'month') this.setData({ y: p.y, m: p.m, isThisMonth: this.isThisMonth(p.y, p.m) })
     else if (type === 'tab') this.planner.setMonth(this.data.y, p)
     else if (type === 'cell') this.startInk(p)
@@ -168,6 +170,15 @@ Page({
 
   toggleOpen() {
     if (this.planner) this.planner.setOpen(!this.data.open)
+  },
+
+  openBook() {
+    if (this.planner) this.planner.setOpen(true)
+  },
+
+  showBook() {
+    if (this.data.tray) this.layout({ tray: false })
+    this.openBook()
   },
 
   shift(n) {
@@ -217,25 +228,39 @@ Page({
 
   /* ---------- 贴纸条 ---------- */
 
-  packItems(i) {
+  packPage(i, page) {
     const pack = this.data.packs[i]
-    if (pack.id === 'tape') return catalog.TAPES.map(t => ({ t: 't', k: t.id, css: t.css, wide: true }))
-    return catalog.PACKS[i].keys.map(k => ({ t: 's', k, src: catalog.src(k), wide: catalog.isWide(k) }))
+    if (pack.id === 'tape') {
+      const items = catalog.TAPES.map(t => ({ t: 't', k: t.id, css: t.css, wide: true }))
+      return { trayPage: 0, trayPages: 1, items }
+    }
+    const keys = catalog.PACKS[i].keys
+    const trayPages = Math.ceil(keys.length / STICKERS_PER_PAGE)
+    const trayPage = Math.max(0, Math.min(page, trayPages - 1))
+    const start = trayPage * STICKERS_PER_PAGE
+    const items = keys.slice(start, start + STICKERS_PER_PAGE)
+      .map(k => ({ t: 's', k, src: catalog.src(k) }))
+    return { trayPage, trayPages, items }
   },
 
   toggleTray() {
     if (!this.planner) return
     const tray = !this.data.tray
     if (tray && !this.data.open) {
-      this.planner.setOpen(true) // 翻开后会自己把贴纸条摆出来
-      return
+      this.planner.setOpen(true)
+      if (!this.data.open) return
     }
     this.layout({ tray })
   },
 
   switchPack(e) {
-    const i = e.currentTarget.dataset.i
-    this.setData({ packIdx: i, items: this.packItems(i) })
+    const packIdx = Number(e.currentTarget.dataset.i)
+    this.setData({ packIdx, ...this.packPage(packIdx, 0) })
+  },
+
+  shiftTray(e) {
+    const page = this.data.trayPage + Number(e.currentTarget.dataset.n)
+    this.setData(this.packPage(this.data.packIdx, page))
   },
 
   // 按住贴纸条里的一张往上拖：手指进到画布范围后，场景里有一张悬着的贴纸跟着走
@@ -286,7 +311,7 @@ Page({
     const d = date.parse(p.key)
     this.inkValue = day.plan
     this.planner.setDraft(p.d, day.plan)
-    this.layout({ ink: { key: p.key, d: p.d, value: day.plan, title: d.m + '月' + d.d + '日' }, hint: false, kb: 0 })
+    this.layout({ ink: { key: p.key, d: p.d, value: day.plan, title: d.m + '月' + d.d + '日' }, kb: 0 })
   },
 
   onInk(e) {

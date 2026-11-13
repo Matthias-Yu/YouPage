@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "有页",
+  "navigationBarBackgroundColor": "#E9EBE4",
   "usingComponents": {
     "deco-layer": "/components/deco-layer/index"
   }

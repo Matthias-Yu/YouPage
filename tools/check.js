@@ -50,8 +50,18 @@ for (const f of files.filter(f => /\.wxml$/.test(f))) {
 console.log('== catalog assets exist')
 global.wx = null
 const catalog = require(path.join(root, 'utils/catalog.js'))
+const atlas = require(path.join(root, 'scene/atlas.js'))
 const keys = [].concat(...catalog.PACKS.map(p => p.keys), catalog.MOODS.map(m => m.key), catalog.WEATHERS.map(w => w.key), catalog.HABIT_ICONS)
-for (const k of keys) if (!fs.existsSync(path.join(root, catalog.src(k)))) { fail++; console.log('  FAIL missing sticker ' + k) }
+for (const k of keys) {
+  if (!fs.existsSync(path.join(root, catalog.src(k)))) { fail++; console.log('  FAIL missing sticker ' + k) }
+  if (!atlas.map[k]) { fail++; console.log('  FAIL missing sticker atlas cell ' + k) }
+}
+for (let month = 1; month <= 12; month++) {
+  const key = 'month-' + String(month).padStart(2, '0')
+  if (!atlas.map[key]) { fail++; console.log('  FAIL missing month illustration ' + key) }
+}
+ok(catalog.stickerKey('w-ddl') === 's05' && catalog.stickerKey('wx-rain') === 's40' &&
+  catalog.stickerKey('mood-happy') === 's19' && catalog.isWide('w-ddl'), 'saved sticker IDs resolve to new artwork')
 console.log('  ' + keys.length + ' sticker refs checked')
 const member = require(path.join(root, 'utils/member.js'))
 for (const b of member.BENEFITS) if (!fs.existsSync(path.join(root, catalog.src(b.icon)))) { fail++; console.log('  FAIL missing benefit icon ' + b.icon) }

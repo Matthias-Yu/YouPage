@@ -1,3 +1,14 @@
+page {
+  --desk: #E9EBE4;
+  --paper: #FCF9EF;
+  --paper-hi: #FFFDF5;
+  --line: #D6DBCF;
+  --line-2: #B9C3B3;
+  --terra: #A35648;
+  --ink-2: #59665E;
+  --ink-3: #687369;
+}
+
 .wrap {
   min-height: 100vh;
   padding: 24rpx 24rpx calc(190rpx + env(safe-area-inset-bottom));
@@ -8,7 +19,10 @@
   position: relative;
   min-height: calc(100vh - 230rpx - env(safe-area-inset-bottom));
   padding: 36rpx 36rpx 90rpx;
+  background: linear-gradient(110deg, #EBEADF, #FFFDF5 9%, #FCF9EF 76%, #F7F3E7);
+  border-radius: 10rpx;
   border-bottom-right-radius: 0;
+  box-shadow: inset 0 0 0 1rpx #FFFDF8, 0 3rpx 0 #D9DDCF, 0 6rpx 0 #F8F6E9, 0 12rpx 26rpx rgba(41, 58, 47, 0.13);
 }
 .page-paper::after {
   content: '';
@@ -17,9 +31,7 @@
   bottom: 0;
   width: 60rpx;
   height: 60rpx;
-  background: linear-gradient(315deg, var(--desk) 50%, #EAD5AE 50%);
-  border-top-left-radius: 14rpx;
-  box-shadow: -4rpx -4rpx 10rpx rgba(96, 66, 28, 0.08);
+  background: linear-gradient(315deg, var(--desk) 49%, #D0D7C6 50%, #E8EADB 66%, #FCF9EF 90%);
 }
 .deco {
   position: absolute;
@@ -35,12 +47,14 @@
   display: flex;
   align-items: center;
   padding-bottom: 24rpx;
-  border-bottom: 3rpx solid var(--ink);
+  border-bottom: 2rpx solid var(--line-2);
 }
 .hd-d {
   min-width: 96rpx;
-  font-size: 96rpx;
-  font-weight: 900;
+  font-family: var(--numerals);
+  font-size: 86rpx;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
   color: var(--ink);
 }
@@ -49,21 +63,24 @@
 }
 .hd-meta {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  margin-left: 20rpx;
-  padding-left: 20rpx;
-  border-left: 3rpx solid var(--ink);
+  margin-left: 14rpx;
+  padding-left: 18rpx;
+  border-left: 2rpx solid var(--line-2);
 }
 .hd-en {
-  font-size: 26rpx;
-  font-weight: 600;
-  letter-spacing: 2rpx;
+  font-family: var(--editorial);
+  font-size: 33rpx;
+  font-style: italic;
+  line-height: 1.2;
   color: var(--ink);
 }
 .hd-lu {
   margin-top: 4rpx;
-  font-size: 22rpx;
+  font-size: 21rpx;
+  line-height: 1.45;
   color: var(--ink-2);
 }
 .hd-fest {
@@ -71,6 +88,7 @@
 }
 .stamps {
   display: flex;
+  flex-shrink: 0;
 }
 .stamp {
   width: 84rpx;
@@ -104,8 +122,8 @@
   padding: 0 20rpx;
   height: 84rpx;
   border-radius: 16rpx;
-  background: var(--paper-hi);
-  border: 2rpx dashed var(--line-2);
+  background: rgba(223, 232, 219, 0.46);
+  border: 1rpx solid var(--line);
 }
 .plan-l {
   flex-shrink: 0;
@@ -115,13 +133,14 @@
   line-height: 40rpx;
   border-radius: 8rpx;
   font-size: 20rpx;
-  color: var(--paper);
-  background: var(--green);
+  color: var(--green-deep);
+  background: #DCE7D9;
 }
 .plan-in {
   flex: 1;
+  min-width: 0;
   height: 80rpx;
-  font-family: var(--hand);
+  font-family: var(--sans);
   font-size: 30rpx;
   color: #2F4F66;
 }
@@ -136,7 +155,8 @@
   justify-content: space-between;
   margin-bottom: 8rpx;
   font-size: 28rpx;
-  font-weight: 700;
+  font-weight: 500;
+  letter-spacing: 1rpx;
   color: var(--green);
 }
 .sec-n {
@@ -184,7 +204,7 @@
 .todo-in {
   flex: 1;
   height: 80rpx;
-  font-family: var(--hand);
+  font-family: var(--sans);
   font-size: 32rpx;
   color: var(--ink);
 }
@@ -200,7 +220,7 @@
 .note {
   width: 100%;
   min-height: 360rpx;
-  font-family: var(--hand);
+  font-family: var(--sans);
   font-size: 32rpx;
   line-height: 60rpx;
   color: var(--ink);
@@ -219,27 +239,39 @@
   justify-content: space-between;
   height: 112rpx;
   padding: 0 20rpx;
-  background: var(--paper-hi);
-  border-radius: 56rpx;
-  box-shadow: 0 8rpx 28rpx rgba(96, 66, 28, 0.2);
+  background: linear-gradient(165deg, #FBFCF7, #F0F3EA);
+  border: 2rpx solid rgba(255, 255, 255, 0.9);
+  border-radius: 36rpx;
+  box-shadow: 0 3rpx 5rpx rgba(41, 58, 47, 0.08), 0 8rpx 24rpx rgba(41, 58, 47, 0.12);
 }
 .tools {
   display: flex;
+  flex: 1;
 }
 .tool {
   display: flex;
+  flex: 1;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
-  width: 128rpx;
-  font-size: 20rpx;
+  min-height: 96rpx;
+  min-width: 0;
+  font-size: 24rpx;
+  font-weight: 500;
   color: var(--ink-2);
 }
 .tool:active {
   opacity: 0.6;
 }
 .tool-ic {
-  width: 48rpx;
-  height: 48rpx;
+  width: 40rpx;
+  height: 40rpx;
+  margin-bottom: 3rpx;
+}
+.bar .round-btn {
+  width: 88rpx;
+  height: 88rpx;
+  flex-shrink: 0;
 }
 
 /* 心情 / 天气选项 */
@@ -273,16 +305,19 @@
 /* 贴纸抽屉 */
 .packs {
   display: flex;
+  justify-content: space-between;
   margin-bottom: 16rpx;
 }
 .pack {
   position: relative;
-  margin-right: 12rpx;
-  padding: 0 26rpx;
+  flex: 1;
+  min-width: 0;
+  margin: 0 4rpx;
   height: 60rpx;
   line-height: 60rpx;
   border-radius: 30rpx;
-  font-size: 26rpx;
+  text-align: center;
+  font-size: 24rpx;
   color: var(--ink-2);
 }
 .pack.on {
@@ -291,7 +326,7 @@
 }
 .pack-tag {
   position: absolute;
-  right: -8rpx;
+  right: 0;
   top: -12rpx;
 }
 .grid-scroll {

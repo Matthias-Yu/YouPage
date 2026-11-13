@@ -17,13 +17,15 @@ page {
   --ink: #2B382E;
   --ink-2: #6F6A57;
   --ink-3: #A69E88;
+  --sans: "PingFang SC", "HarmonyOS Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
+  --numerals: "Avenir Next", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --editorial: Georgia, "Noto Serif", serif;
   --serif: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
-  --hand: "Kaiti SC", "STKaiti", "KaiTi", "Noto Serif CJK SC", serif;
   --shadow: 0 6rpx 22rpx rgba(96, 66, 28, 0.13);
 
   background: var(--desk);
   color: var(--ink);
-  font-family: -apple-system, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  font-family: var(--sans);
   font-size: 28rpx;
   line-height: 1.5;
 }
