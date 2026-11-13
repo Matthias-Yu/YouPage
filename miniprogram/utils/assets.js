@@ -6,7 +6,10 @@ let atlasDownload
 
 function cloudId(src) {
   if (!src || !src.startsWith(PREFIX) || typeof wx === 'undefined' || !wx.cloud || !config.ASSET_CLOUD_ROOT) return ''
-  return config.ASSET_CLOUD_ROOT + src.slice(PREFIX.length)
+  let root = config.ASSET_CLOUD_ROOT
+  if (src === PREFIX + 'logo.png') root = root.replace(/[^/]+\/$/, config.LOGO_ASSET_VERSION + '/')
+  else if (src.startsWith(PREFIX + 'icons/')) root = root.replace(/[^/]+\/$/, config.ICON_ASSET_VERSION + '/')
+  return root + src.slice(PREFIX.length)
 }
 
 function atlasPath() {

@@ -26,12 +26,12 @@
     <block wx:else>
       <view class="masks">
         <button wx:for="{{masks}}" wx:key="id" class="mask-choice {{shape === item.id ? 'selected' : ''}}" data-shape="{{item.id}}" bindtap="setShape" disabled="{{saving}}">
-          <text class="mask-icon">{{item.icon}}</text><text>{{item.name}}</text>
+          <asset-image image-class="mask-icon" src="{{'/assets/icons/masks/' + item.id + '.svg'}}" mode="aspectFit" /><text>{{item.name}}</text>
         </button>
       </view>
       <view class="size-control">
         <text>大小</text>
-        <slider min="20" max="100" value="{{size}}" activeColor="#365C48" backgroundColor="#CFD9CD" block-size="18" bindchanging="setSize" bindchange="setSize" disabled="{{!ready || saving}}" />
+        <slider min="20" max="100" value="{{size}}" activeColor="#303030" backgroundColor="#CDCDCD" block-size="18" bindchanging="setSize" bindchange="setSize" disabled="{{!ready || saving}}" />
       </view>
       <text class="hint">拖动照片上的蒙版调整位置</text>
     </block>

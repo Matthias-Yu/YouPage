@@ -1,4 +1,4 @@
-// 3D 活页手帐：一本茶色透明六孔本，旁边放着一卷胶带。
+// 3D 活页手帐：一本烟灰色透明六孔本，旁边放着一卷胶带。
 // 坐标单位是厘米。本子平放在 XY 平面上，+Z 朝向镜头；纸页占 x∈[0,W]、y∈[-H/2,H/2]。
 //
 // 对外接口（页面只和这些打交道）：
@@ -26,7 +26,7 @@ const sound = require('../utils/sound')
 const assets = require('../utils/assets')
 
 const W = 10.5, H = 14.8            // A6 纸页
-const DESK = 0xE9EBE4
+const DESK = 0xEBEBEB
 const CT = 0.2                      // 封皮厚
 const T = 1.1                       // 纸叠厚
 const PAGE_Z = CT + T               // 最上面一页的高度
@@ -36,6 +36,7 @@ const COVER_W = W + 1.5, COVER_H = H + 0.8
 const RING_X = 0.08, RING_Z = CT + 0.6, RING_R = 0.62
 const FOV = 30
 const DEG = Math.PI / 180
+const MENU_TRANSITION_MS = 260
 
 const TAPE_W = 0.8                  // 胶带宽
 const TAPE_LEN = 4.4                // 撕下来的一段有多长
@@ -68,6 +69,7 @@ class Planner {
     this.opts = opts
     this.w = opts.width
     this.h = opts.height
+    this.bufferH = this.h
     this.emit = opts.on || function () {}
 
     const THREE = this.THREE = createScopedThreejs(canvas)
@@ -228,9 +230,9 @@ class Planner {
 
   buildLights() {
     const THREE = this.THREE
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xd4dbce, 0.73))
+    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xD7D7D7, 0.73))
     // 左上方的漫射光让纸面和金属带有不同的质感。
-    const key = new THREE.DirectionalLight(0xfff6e7, 0.48)
+    const key = new THREE.DirectionalLight(0xFFFFFF, 0.48)
     key.position.set(-14, 16, 42)
     key.target.position.set(-1, 0, 0)
     key.castShadow = true
@@ -253,7 +255,7 @@ class Planner {
     const THREE = this.THREE
     const geo = new THREE.PlaneBufferGeometry(400, 400)
     this.scene.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: DESK })))
-    const shade = new THREE.Mesh(geo, new THREE.ShadowMaterial({ color: 0x435046, opacity: 0.27 }))
+    const shade = new THREE.Mesh(geo, new THREE.ShadowMaterial({ color: 0x383838, opacity: 0.27 }))
     shade.position.z = 0.002
     shade.receiveShadow = true
     this.scene.add(shade)
@@ -313,10 +315,9 @@ class Planner {
           float shine = clamp(rim + seams + gloss + grazing * grazing * 0.44, 0.0, 0.90);
           float shade = tint + pocket * 0.12;
           float opacity = shine + shade * (1.0 - shine);
-          vec3 amber = mix(vec3(0.34, 0.17, 0.055), vec3(0.19, 0.073, 0.032), pocket * 0.6);
-          vec3 highlight = vec3(1.0, 0.91, 0.72);
-          vec3 color = mix(amber, highlight, shine / max(opacity, 0.001));
-          gl_FragColor = vec4(color, opacity);
+          float smoke = mix(0.22, 0.10, pocket * 0.6);
+          float color = mix(smoke, 0.97, shine / max(opacity, 0.001));
+          gl_FragColor = vec4(vec3(color), opacity);
         }
       `
     })
@@ -326,7 +327,7 @@ class Planner {
     const THREE = this.THREE
     const book = this.book = new THREE.Group()
     this.scene.add(book)
-    const chestnut = this.lambert(0x70421F)
+    const charcoal = this.lambert(0x363636)
     const shadow = m => {
       m.castShadow = true
       m.receiveShadow = true
@@ -338,11 +339,11 @@ class Planner {
     const plateGeo = this.plate(insertW, insertH, 0.52, 0.13)
     const sleeveGeo = this.plate(COVER_W, COVER_H, 0.64, CT + 0.065)
     const sleeveEdge = new THREE.MeshBasicMaterial({
-      color: 0xA8753C, transparent: true, opacity: 0.63, depthWrite: false
+      color: 0x858585, transparent: true, opacity: 0.63, depthWrite: false
     })
 
     // 后封皮的透明边缘在纸叠四周露出来。
-    const back = shadow(new THREE.Mesh(plateGeo, chestnut))
+    const back = shadow(new THREE.Mesh(plateGeo, charcoal))
     back.position.set(HX + inset, 0, CT / 2 + 0.03)
     back.userData = { type: 'back' }
     const backSleeve = new THREE.Mesh(sleeveGeo, [this.sleeveMaterial(0.20), sleeveEdge])
@@ -353,13 +354,13 @@ class Planner {
     // 纸叠
     const edgeU = this.lambert(0, this.texture(draw.pageEdge(true), { repeat: [3, 1] }))
     const edgeV = this.lambert(0, this.texture(draw.pageEdge(false), { repeat: [1, 3] }))
-    const paper = this.lambert(0xFCF9EF)
+    const paper = this.lambert(0xFAFAFA)
     const stack = shadow(new THREE.Mesh(new THREE.BoxBufferGeometry(W, H, T), [edgeU, edgeU, edgeV, edgeV, paper, paper]))
     stack.position.set(W / 2, 0, CT + T / 2)
     book.add(stack)
 
     // 最上面的月历页；翻页时另一张贴图给另一个月用
-    const blank = { data: new Uint8Array([252, 249, 239, 255]), width: 1, height: 1 }
+    const blank = { data: new Uint8Array([250, 250, 250, 255]), width: 1, height: 1 }
     this.texTop = this.texture(blank)
     this.texSpare = this.texture(blank)
     const page = this.pageMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(W, H), this.lambert(0, this.texTop))
@@ -369,7 +370,7 @@ class Planner {
     book.add(page)
 
     // 活页环
-    const metal = new THREE.MeshMatcapMaterial({ color: 0xE8CB9B, matcap: this.texture(draw.matcap(128)) })
+    const metal = new THREE.MeshMatcapMaterial({ color: 0xD5D5D5, matcap: this.texture(draw.matcap(128)) })
     const base = new THREE.Mesh(this.plate(0.68, H * 0.72, 0.18, 0.1), metal)
     base.position.set(RING_X - 0.73, 0, CT + 0.05)
     book.add(base)
@@ -389,7 +390,7 @@ class Planner {
     for (let i = 0; i < 12; i++) {
       const tab = new THREE.Mesh(tabGeo, [
         this.lambert(0, this.texture(this.painter.tab(i + 1, false))),
-        this.lambert(0x8A9D8D)
+        this.lambert(0x939393)
       ])
       tab.position.set(W - 0.12, H / 2 - 0.5 - th * (i + 0.5), PAGE_Z - 0.035)
       tab.castShadow = true
@@ -401,7 +402,7 @@ class Planner {
     // 书脊和前封皮：两道铰链，合上时书脊竖着、封皮盖在纸上；打开后一起摊平在左边
     const spineG = this.spineG = new THREE.Group()
     spineG.position.set(HX, 0, CT / 2)
-    const spine = shadow(new THREE.Mesh(this.plate(SPINE, COVER_H - 0.2, 0.19, CT), chestnut))
+    const spine = shadow(new THREE.Mesh(this.plate(SPINE, COVER_H - 0.2, 0.19, CT), charcoal))
     spine.userData = { type: 'cover' }
     spineG.add(spine)
     const welt = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.066, 0.066, COVER_H - 0.4, 12), metal)
@@ -493,7 +494,7 @@ class Planner {
       new THREE.Vector3(0.055, 0.30, -0.55)
     ])
     const band = new THREE.Mesh(new THREE.TubeBufferGeometry(path, 48, 0.053, 9, false),
-      this.lambert(0xFFEFCD))
+      this.lambert(0xE4E4E4))
     band.castShadow = true
     const stud = new THREE.Mesh(new THREE.SphereBufferGeometry(0.16, 16, 10), metal)
     stud.scale.z = 0.34
@@ -505,7 +506,7 @@ class Planner {
   buildCharm() {
     const THREE = this.THREE
     const charm = this.charm = new THREE.Group()
-    const metal = new THREE.MeshMatcapMaterial({ color: 0xDFC29D, matcap: this.texture(draw.matcap(64)) })
+    const metal = new THREE.MeshMatcapMaterial({ color: 0xCCCCCC, matcap: this.texture(draw.matcap(64)) })
     const ring = new THREE.Mesh(new THREE.TorusBufferGeometry(0.32, 0.052, 10, 30), metal)
     ring.scale.y = 1.3
     ring.position.y = 0.34
@@ -513,7 +514,7 @@ class Planner {
     loop.position.y = 1.0
     const bell = new THREE.Mesh(new THREE.SphereBufferGeometry(0.23, 20, 16), metal)
     bell.position.set(-0.52, 1.56, 0.095)
-    const side = this.lambert(0xB79670)
+    const side = this.lambert(0x8F8F8F)
     const face = this.lambert(0, this.texture(this.painter.charm()))
     const disc = new THREE.Mesh(new THREE.CylinderBufferGeometry(0.96, 0.96, 0.15, 40), [side, face, side])
     disc.rotation.set(Math.PI / 2, Math.PI / 2, 0)
@@ -547,10 +548,10 @@ class Planner {
     this.rollSide.castShadow = true
     this.rollTop = new THREE.Mesh(new THREE.RingBufferGeometry(ROLL.ri, ROLL.r, 48, 1), new THREE.MeshLambertMaterial({ map: tex.top }))
     this.rollTop.position.z = ROLL.h + 0.002
-    const core = new THREE.Mesh(new THREE.RingBufferGeometry(ROLL.core, ROLL.ri, 40, 1), this.lambert(0xCDB286))
+    const core = new THREE.Mesh(new THREE.RingBufferGeometry(ROLL.core, ROLL.ri, 40, 1), this.lambert(0xBDBDBD))
     core.position.z = ROLL.h + 0.004
     const wall = new THREE.Mesh(new THREE.CylinderBufferGeometry(ROLL.core, ROLL.core, ROLL.h, 32, 1, true),
-      new THREE.MeshLambertMaterial({ color: 0xA88C5E, side: THREE.BackSide }))
+      new THREE.MeshLambertMaterial({ color: 0x898989, side: THREE.BackSide }))
     wall.rotation.x = Math.PI / 2
     wall.position.z = ROLL.h / 2
     // 中间的洞也要点得到：一块不画出来、只用来命中的圆片
@@ -1182,15 +1183,15 @@ class Planner {
   }
 
   // 竖屏让月历保持可读，横屏给左右页都留出位置。
-  frame(animate) {
+  framing(h) {
     const s = this.state
-    const spread = s.open && this.w >= 560 && this.w / this.h >= 1.02
+    const spread = s.open && this.w >= 560 && this.w / h >= 1.02
     const left = spread ? HX - SPINE - COVER_W - 0.65 : s.open ? -2.1 : -3.6
     const right = s.open ? W + 1.25 : 12
     const bottom = ROLL.y - ROLL.r - 0.7
     const top = s.open ? COVER_H / 2 + 0.75 : COVER_H / 2 + 1.6
-    const tanV = Math.tan(FOV * DEG / 2), tanH = tanV * (this.w / this.h)
-    const to = {
+    const tanV = Math.tan(FOV * DEG / 2), tanH = tanV * (this.w / h)
+    return {
       az: s.open ? 0 : 0.075,
       el: s.open ? -0.095 : -0.16,
       dist: Math.max((right - left) / 2 / tanH, (top - bottom) / 2 / tanV),
@@ -1198,6 +1199,10 @@ class Planner {
       ty: (bottom + top) / 2,
       tz: s.open ? PAGE_Z : 1
     }
+  }
+
+  frame(animate) {
+    const to = this.framing(this.targetH || this.h)
     if (animate) this.rigTo(to, 900)
     else {
       Object.assign(this.rig, to)
@@ -1206,13 +1211,42 @@ class Planner {
     }
   }
 
-  // 画布大小变了（贴纸条展开、键盘弹起）
-  resize(w, h, keepView) {
-    if (w === this.w && h === this.h) return
+  setViewportSize(w, h) {
+    // 缓冲区保留较高分辨率，投影按画布实际显示比例计算，避免逐帧重建缓冲区。
+    if (w !== this.w || h > this.bufferH) {
+      this.bufferH = h
+      this.renderer.setSize(w, h, false)
+    }
     this.w = w
     this.h = h
-    this.renderer.setSize(w, h, false)
     this.camera.aspect = w / h
+  }
+
+  animateHeight(height, update) {
+    this.stopHeightTween()
+    const fromH = this.h
+    if (height > this.bufferH) {
+      this.bufferH = height
+      this.renderer.setSize(this.w, height, false)
+    }
+    this.targetH = height
+    this.rigTo(this.framing(height), MENU_TRANSITION_MS)
+    this.heightTween = this.tween(MENU_TRANSITION_MS, k => {
+      const h = k === 1 ? height : Math.round(fromH + (height - fromH) * k)
+      this.setViewportSize(this.w, h)
+      this.applyRig()
+      update(h, k)
+    }, () => {
+      this.heightTween = null
+      this.targetH = null
+    })
+  }
+
+  // 键盘弹起等需要马上腾出空间的布局变化。
+  resize(w, h, keepView) {
+    this.stopHeightTween()
+    if (w === this.w && h === this.h) return
+    this.setViewportSize(w, h)
     if (this.state.focus) this.focusCell(this.focusD, 260)
     else if (!keepView) this.frame(true)
     this.applyRig()
@@ -1487,9 +1521,19 @@ class Planner {
   }
 
   stopRigTween() {
-    const i = this.tweens.indexOf(this.rigTween)
-    if (i > -1) this.tweens.splice(i, 1)
+    this.removeTween(this.rigTween)
     this.rigTween = null
+  }
+
+  stopHeightTween() {
+    this.removeTween(this.heightTween)
+    this.heightTween = null
+    this.targetH = null
+  }
+
+  removeTween(tween) {
+    const i = this.tweens.indexOf(tween)
+    if (i > -1) this.tweens.splice(i, 1)
   }
 
   tick() {

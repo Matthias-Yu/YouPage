@@ -4,6 +4,9 @@ module.exports = {
   CLOUD_ENV: 'cloud1-d1g2id4e4d7d2e2b4',
   // 内置素材的版本目录，发布新素材时与云存储文件一起更新。
   ASSET_CLOUD_ROOT: 'cloud://cloud1-d1g2id4e4d7d2e2b4.636c-cloud1-d1g2id4e4d7d2e2b4-1531148926/youpage/assets/22e047f/',
+  // 工具图标和品牌 Logo 各自使用独立版本。
+  ICON_ASSET_VERSION: 'mono-ca95a8839a',
+  LOGO_ASSET_VERSION: 'pearl-e836df6d42',
   // 同步用的云函数，代码在 cloudfunctions/youpageSync
   SYNC_FUNCTION: 'youpageSync',
   // 照片上传到云存储的目录

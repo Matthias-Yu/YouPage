@@ -1,9 +1,9 @@
 // 裁切轮廓始终用原图像素坐标，预览与导出共用一套路径。
 const MASKS = [
-  { id: 'circle', name: '圆形', icon: '○' },
-  { id: 'rounded', name: '圆角', icon: '▢' },
-  { id: 'heart', name: '爱心', icon: '♡' },
-  { id: 'star', name: '星形', icon: '☆' }
+  { id: 'circle', name: '圆形' },
+  { id: 'rounded', name: '圆角' },
+  { id: 'heart', name: '爱心' },
+  { id: 'star', name: '星形' }
 ]
 const MIN_OUTLINE_PX = 8
 const SIMPLIFY_PX = 1.8

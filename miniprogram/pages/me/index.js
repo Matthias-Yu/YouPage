@@ -67,7 +67,7 @@ Page({
         title: '开启云端同步',
         content: '开启后，你写的内容和贴的照片会保存到云端（腾讯云开发），用于换手机时找回。详见下方的《隐私政策》。',
         confirmText: '同意并开启',
-        confirmColor: '#30533A',
+        confirmColor: '#262626',
         success: r => {
           if (!r.confirm) return
           consent.set(true)
@@ -94,7 +94,7 @@ Page({
       title: '删除云端数据？',
       content: '云端保存的全部手帐和照片会被永久删除，无法恢复。这台手机上的内容会保留，并关闭这台手机的云端同步。其他设备上已有的内容不受影响，但如果它们还开着同步，之后的修改会重新上传。',
       confirmText: '删除',
-      confirmColor: '#C96F43',
+      confirmColor: '#424242',
       success: r => {
         if (!r.confirm) return
         wx.showLoading({ title: '正在删除', mask: true })
@@ -228,7 +228,7 @@ Page({
       content: '备份时间 ' + String(obj.exportedAt || '').slice(0, 10) + '。现在的内容会被替换' +
         (sync.status().on ? '，云端和其他设备也会跟着变成这份备份' : '') + '，无法撤销。',
       confirmText: '恢复',
-      confirmColor: '#C96F43',
+      confirmColor: '#424242',
       success: r => {
         if (!r.confirm) return
         try {
@@ -248,7 +248,7 @@ Page({
       content: '所有日页、贴纸和打卡记录都会被删除' +
         (sync.status().on ? '，云端和其他设备上也会一起清空' : '') + '，无法撤销。建议先备份。',
       confirmText: '清空',
-      confirmColor: '#C96F43',
+      confirmColor: '#424242',
       success: r => {
         if (!r.confirm) return
         // 已经同步到云存储的照片也一起删掉

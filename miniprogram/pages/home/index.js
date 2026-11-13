@@ -148,12 +148,23 @@ Page({
   },
 
   // 底部占多高，画布就让出多高
-  layout(patch, keepView, done) {
+  layout(patch, { animate = false, keepView = false, done } = {}) {
     const d = Object.assign({}, this.data, patch)
     const controlsH = d.palette ? PALETTE_H : DOCK_H + (d.tray ? TRAY_H : 0) + (d.toolsOpen ? TOOLS_H : 0)
     const panelH = (d.consentAsk ? this.consentH : controlsH) + d.safeBottom
     const bottom = d.ink ? INK_H + (d.kb || d.safeBottom) : panelH
     const glH = Math.max(160, this.winH - d.topH - bottom)
+    const fromPanelH = this.data.panelH
+    if (animate && this.planner) {
+      this.planner.animateHeight(glH, (height, progress) => {
+        const nextPanelH = progress === 1 ? panelH : Math.round(fromPanelH + (panelH - fromPanelH) * progress)
+        if (height !== this.data.glH || nextPanelH !== this.data.panelH) {
+          this.setData({ glH: height, panelH: nextPanelH })
+        }
+      })
+      this.setData(patch, done)
+      return
+    }
     this.setData(Object.assign({ panelH, glH }, patch), done)
     if (this.planner) this.planner.resize(this.winW, glH, keepView)
   },
@@ -161,8 +172,7 @@ Page({
   onPlanner(type, p) {
     if (type === 'open') {
       if (!p && (this.data.tray || this.data.toolsOpen)) {
-        this.closeTools()
-        this.layout({ open: false, tray: false })
+        this.setMenu('book')
       } else this.setData({ open: p })
     } else if (type === 'month') {
       this.setData({ y: p.y, m: p.m, isThisMonth: this.isThisMonth(p.y, p.m) })
@@ -288,8 +298,7 @@ Page({
   },
 
   showBook() {
-    this.closeTools()
-    if (this.data.tray) this.layout({ tray: false })
+    if (this.data.tray || this.data.toolsOpen) this.setMenu('book')
     this.openBook()
   },
 
@@ -359,13 +368,12 @@ Page({
 
   toggleTray() {
     if (!this.planner) return
-    this.closeTools()
     const tray = !this.data.tray
     if (tray && !this.data.open) {
       this.planner.setOpen(true)
       if (!this.data.open) return
     }
-    this.layout({ tray })
+    this.setMenu(tray ? 'tray' : 'book')
   },
 
   switchPack(e) {
@@ -421,23 +429,24 @@ Page({
   toggleTools() {
     if (!this.planner) return
     if (this.data.toolsOpen) {
-      this.closeTools()
+      this.setMenu('book')
       return
     }
     this.planner.setOpen(true)
     if (!this.planner.state.open) return
-    this.layout({ toolsOpen: true, tray: false })
-    this.planner.setDrawing(true)
-    this.updateInkHistory()
+    this.setMenu('tools')
   },
 
-  closeTools() {
-    if (!this.data.toolsOpen) return
-    this.finishStroke()
-    this.dayTouch = null
-    this.toolPinch = null
-    this.planner.setDrawing(false)
-    this.layout({ toolsOpen: false, pickingDay: false, palette: null })
+  setMenu(menu) {
+    const toolsOpen = menu === 'tools'
+    if (this.data.toolsOpen && !toolsOpen) {
+      this.finishStroke()
+      this.dayTouch = null
+      this.toolPinch = null
+    }
+    if (toolsOpen !== this.data.toolsOpen) this.planner.setDrawing(toolsOpen)
+    this.layout({ open: this.planner.state.open, tray: menu === 'tray', toolsOpen, pickingDay: false, palette: null }, { animate: true })
+    if (toolsOpen) this.updateInkHistory()
   },
 
   selectBrush(e) {
@@ -457,16 +466,19 @@ Page({
     this.finishStroke()
     this.toolPinch = null
     this.paletteRect = null
-    this.layout({ palette: { ...hexToHsv(this.data.color), hex: this.data.color } }, true, () => {
-      wx.createSelectorQuery().select('#ink-color-field').boundingClientRect(rect => {
-        this.paletteRect = rect
-      }).exec()
+    this.layout({ palette: { ...hexToHsv(this.data.color), hex: this.data.color } }, {
+      keepView: true,
+      done: () => {
+        wx.createSelectorQuery().select('#ink-color-field').boundingClientRect(rect => {
+          this.paletteRect = rect
+        }).exec()
+      }
     })
   },
 
   closePalette() {
     this.paletteRect = null
-    this.layout({ palette: null }, true)
+    this.layout({ palette: null }, { keepView: true })
   },
 
   applyPalette() {
@@ -607,7 +619,7 @@ Page({
       title: '清空本月笔迹？',
       content: `将清空 ${y} 年 ${m} 月月历上的手绘笔迹。清空后可以撤销。`,
       confirmText: '清空',
-      confirmColor: '#A35648',
+      confirmColor: '#424242',
       success: res => {
         if (!res.confirm || !this.confirmingClear || this.planner.flip || key !== this.inkKey()) return
         if (store.getMonthInk(key) !== lines) {

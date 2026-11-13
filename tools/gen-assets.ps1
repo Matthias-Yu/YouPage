@@ -14,7 +14,7 @@ foreach ($ic in $spec.icons.PSObject.Properties) {
   foreach ($c in $spec.iconColors.PSObject.Properties) {
     $suffix = ''
     if ($c.Name -ne 'ink') { $suffix = '-' + $c.Name }
-    $svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='$($c.Value)' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'>" + $ic.Value + "</svg>"
+    $svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='$($c.Value)' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'>" + $ic.Value + "</svg>"
     [System.IO.File]::WriteAllText((Join-Path $outI ($ic.Name + $suffix + '.svg')), $svg, $enc)
     $i++
   }

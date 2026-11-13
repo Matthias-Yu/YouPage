@@ -1,7 +1,7 @@
 page {
   height: 100%;
-  background: #E9EBE4;
-  color: #283B32;
+  background: #EBEBEB;
+  color: #202020;
 }
 
 .editor {
@@ -37,7 +37,7 @@ page {
   display: flex;
   padding: 6rpx;
   border-radius: 20rpx;
-  background: #DBE2D9;
+  background: #E0E0E0;
 }
 
 .mode {
@@ -45,14 +45,13 @@ page {
   min-width: 0;
   line-height: 68rpx;
   border-radius: 15rpx;
-  color: #536258;
+  color: #555555;
 }
 
-.mode.selected,
-.mask-choice.selected {
-  color: #29483A;
-  background: #F7F8F1;
-  box-shadow: 0 2rpx 5rpx rgba(41, 59, 46, 0.13);
+.mode.selected {
+  color: #262626;
+  background: #FAFAFA;
+  box-shadow: 0 2rpx 5rpx rgba(0, 0, 0, 0.13);
 }
 
 .stage {
@@ -61,9 +60,9 @@ page {
   min-height: 0;
   margin-top: 22rpx;
   overflow: hidden;
-  border: 1rpx solid #CDD7CB;
+  border: 1rpx solid #CDCDCD;
   border-radius: 22rpx;
-  background: #DFE5DC;
+  background: #DFDFDF;
 }
 
 .preview {
@@ -79,7 +78,7 @@ page {
   right: 0;
   text-align: center;
   transform: translateY(-50%);
-  color: #536258;
+  color: #555555;
   font-size: 26rpx;
 }
 
@@ -97,7 +96,7 @@ page {
 }
 
 .hint {
-  color: #536258;
+  color: #555555;
   font-size: 24rpx;
   line-height: 34rpx;
   text-align: center;
@@ -105,7 +104,7 @@ page {
 
 .reset {
   padding: 0 26rpx;
-  color: #A35648;
+  color: #424242;
   line-height: 56rpx;
 }
 
@@ -125,12 +124,20 @@ page {
   border-radius: 14rpx;
   line-height: 60rpx;
   font-size: 23rpx;
-  background: #DFE6DC;
+  color: #303030;
+  background: #F6F6F6;
+}
+
+.mask-choice.selected {
+  color: #141414;
+  background: #FFF;
+  box-shadow: inset 0 0 0 2rpx #141414;
 }
 
 .mask-icon {
-  font-size: 32rpx;
-  font-weight: 400;
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
 }
 
 .size-control {
@@ -138,7 +145,7 @@ page {
   align-items: center;
   width: 100%;
   padding-left: 14rpx;
-  color: #536258;
+  color: #555555;
   font-size: 23rpx;
 }
 
@@ -162,20 +169,20 @@ page {
 
 .secondary {
   padding: 0 22rpx;
-  background: #F5F7F0;
+  background: #F8F8F8;
 }
 
 .primary {
   flex: 1 0 auto;
   min-width: 0;
   padding: 0 18rpx;
-  color: #FFF8E6;
-  background: #30533A;
+  color: #FFFFFF;
+  background: #262626;
 }
 
 .primary.unavailable {
-  color: #67766A;
-  background: #DDE4DB;
+  color: #646464;
+  background: #DEDEDE;
 }
 
 .export {

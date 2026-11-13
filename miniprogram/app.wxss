@@ -1,27 +1,25 @@
 /* 有页 · 全局样式
- * 颜色取自图标：米色桌面、奶油纸页、墨绿封皮、赤陶印章。
+ * 手帐配色：浅灰桌面、白纸与炭灰墨色。
  */
 page {
-  --desk: #F6E3C7;
-  --paper: #FCF0DA;
-  --paper-hi: #FFF8E9;
-  --line: #EBDABB;
-  --line-2: #DDC9A4;
-  --green: #30533A;
-  --green-deep: #254230;
-  --green-soft: #9DB89F;
-  --green-wash: #DDE6D2;
-  --terra: #C96F43;
-  --terra-soft: #EDBFA4;
-  --mustard: #DDA63F;
-  --ink: #2B382E;
-  --ink-2: #6F6A57;
-  --ink-3: #A69E88;
+  --desk: #EBEBEB;
+  --paper: #FAFAFA;
+  --paper-hi: #FFFFFF;
+  --line: #DEDEDE;
+  --line-2: #C7C7C7;
+  --accent: #262626;
+  --accent-deep: #141414;
+  --accent-soft: #BDBDBD;
+  --accent-wash: #EAEAEA;
+  --emphasis: #424242;
+  --ink: #202020;
+  --ink-2: #535353;
+  --ink-3: #666666;
   --sans: "PingFang SC", "HarmonyOS Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
   --numerals: "Avenir Next", Roboto, "Helvetica Neue", Arial, sans-serif;
   --editorial: Georgia, "Noto Serif", serif;
   --serif: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
-  --shadow: 0 6rpx 22rpx rgba(96, 66, 28, 0.13);
+  --shadow: 0 6rpx 22rpx rgba(0, 0, 0, 0.13);
 
   background: var(--desk);
   color: var(--ink);
@@ -71,7 +69,7 @@ view, text, image, input, textarea, scroll-view, button {
   align-items: center;
   justify-content: center;
 }
-.round-btn:active { background: rgba(48, 83, 58, 0.1); }
+.round-btn:active { background: rgba(26, 26, 26, 0.1); }
 
 /* 胶囊标签 */
 .chip {
@@ -81,8 +79,8 @@ view, text, image, input, textarea, scroll-view, button {
   padding: 0 24rpx;
   border-radius: 26rpx;
   font-size: 24rpx;
-  color: var(--green);
-  background: var(--green-wash);
+  color: var(--accent);
+  background: var(--accent-wash);
 }
 
 /* 主按钮 */
@@ -95,13 +93,13 @@ view, text, image, input, textarea, scroll-view, button {
   font-size: 30rpx;
   font-weight: 600;
   color: var(--paper);
-  background: var(--green);
+  background: var(--accent);
 }
-.btn:active { background: var(--green-deep); }
+.btn:active { background: var(--accent-deep); }
 .btn.ghost {
-  color: var(--green);
+  color: var(--accent);
   background: transparent;
-  border: 2rpx solid var(--green);
+  border: 2rpx solid var(--accent);
 }
 
 /* 底部抽屉 */
@@ -112,7 +110,7 @@ view, text, image, input, textarea, scroll-view, button {
   top: 0;
   bottom: 0;
   z-index: 900;
-  background: rgba(43, 56, 46, 0.32);
+  background: rgba(20, 20, 20, 0.32);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s;
@@ -130,7 +128,7 @@ view, text, image, input, textarea, scroll-view, button {
   padding: 20rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
   background: var(--paper);
   border-radius: 32rpx 32rpx 0 0;
-  box-shadow: 0 -8rpx 30rpx rgba(96, 66, 28, 0.16);
+  box-shadow: 0 -8rpx 30rpx rgba(0, 0, 0, 0.16);
   transform: translateY(105%);
   transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -161,5 +159,5 @@ view, text, image, input, textarea, scroll-view, button {
   border-radius: 8rpx;
   font-size: 18rpx;
   color: var(--paper);
-  background: var(--terra);
+  background: var(--emphasis);
 }

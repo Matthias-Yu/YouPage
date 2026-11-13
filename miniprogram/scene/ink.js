@@ -7,7 +7,7 @@ const TOOLS = [
   { id: 'eraser', name: '橡皮', widths: [18, 36, 60] }
 ]
 const COLORS = [
-  { name: '墨绿', value: '#2C513F' },
+  { name: '炭黑', value: '#242424' },
   { name: '湖蓝', value: '#39739B' },
   { name: '砖红', value: '#B45949' },
   { name: '淡紫', value: '#A96EAB' },

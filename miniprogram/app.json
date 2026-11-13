@@ -9,10 +9,10 @@
     "pages/legal/index"
   ],
   "window": {
-    "navigationBarBackgroundColor": "#F6E3C7",
+    "navigationBarBackgroundColor": "#EBEBEB",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "有页",
-    "backgroundColor": "#F6E3C7",
+    "backgroundColor": "#EBEBEB",
     "backgroundTextStyle": "dark"
   },
   "sitemapLocation": "sitemap.json",

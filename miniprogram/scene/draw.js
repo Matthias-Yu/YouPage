@@ -17,16 +17,16 @@ const RINGF = [0.2, 0.29, 0.38, 0.62, 0.71, 0.8]
 const GRID = { x: 108, y: 338, w: 884, bottom: 1388 }
 
 const C = {
-  paper: '#FCF9EF',
-  ink: '#293E33',
-  ink2: '#626A60',
-  faint: '#7C8274',
-  line: '#C0C9B8',
-  line2: '#A7B3A1',
-  green: '#345744',
-  terra: '#A35648',
-  cream: '#FFF6DF',
-  hand: '#2F4F66'
+  paper: '#FAFAFA',
+  ink: '#232323',
+  ink2: '#535353',
+  faint: '#696969',
+  line: '#CECECE',
+  line2: '#A6A6A6',
+  accent: '#343434',
+  emphasis: '#4C4C4C',
+  white: '#FFFFFF',
+  hand: '#303030'
 }
 const SANS = '"PingFang SC","HarmonyOS Sans SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif'
 const NUMERALS = '"Avenir Next",Roboto,"Helvetica Neue",Arial,sans-serif'
@@ -81,10 +81,10 @@ function paperBase(ctx, w, h, holeX) {
   const shade = ctx.createLinearGradient(0, 0, w * 0.9, h)
   shade.addColorStop(0, 'rgba(255,255,255,0.64)')
   shade.addColorStop(0.68, 'rgba(255,255,255,0)')
-  shade.addColorStop(1, 'rgba(171,155,120,0.13)')
+  shade.addColorStop(1, 'rgba(120,120,120,0.13)')
   ctx.fillStyle = shade
   ctx.fillRect(0, 0, w, h)
-  ctx.fillStyle = 'rgba(81,76,52,0.055)'
+  ctx.fillStyle = 'rgba(60,60,60,0.055)'
   for (let i = 0; i < 1300; i++) {
     const x = ((i * 379 + (i % 17) * 31) % 1031) / 1031 * w
     const y = ((i * 233 + (i % 29) * 47) % 1451) / 1451 * h
@@ -93,16 +93,16 @@ function paperBase(ctx, w, h, holeX) {
   // 靠近活页环一侧的折痕阴影
   const fromLeft = holeX < w / 2
   const g = ctx.createLinearGradient(fromLeft ? 0 : w, 0, fromLeft ? 96 : w - 96, 0)
-  g.addColorStop(0, 'rgba(56,65,51,0.19)')
-  g.addColorStop(1, 'rgba(56,65,51,0)')
+  g.addColorStop(0, 'rgba(48,48,48,0.19)')
+  g.addColorStop(1, 'rgba(48,48,48,0)')
   ctx.fillStyle = g
   ctx.fillRect(fromLeft ? 0 : w - 96, 0, 96, h)
   RINGF.forEach(f => {
     const y = f * h
     const hole = ctx.createRadialGradient(holeX - 3, y - 3, 3, holeX, y, 16)
-    hole.addColorStop(0, '#353C33')
-    hole.addColorStop(0.8, '#60685D')
-    hole.addColorStop(1, '#A6AA97')
+    hole.addColorStop(0, '#333333')
+    hole.addColorStop(0.8, '#626262')
+    hole.addColorStop(1, '#A6A6A6')
     ctx.fillStyle = hole
     ctx.beginPath()
     ctx.arc(holeX, y, 16, 0, Math.PI * 2)
@@ -114,7 +114,7 @@ function paperBase(ctx, w, h, holeX) {
 function coverFox(ctx) {
   ctx.save()
   ctx.translate(566, 582)
-  ctx.strokeStyle = '#FFEDCC'
+  ctx.strokeStyle = '#F3F3F3'
   ctx.lineWidth = 3.8
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
@@ -267,7 +267,7 @@ function createPainter() {
       ctx.fillText(String(m).padStart(2, '0'), GRID.x - 5, 230)
       ctx.fillStyle = C.line2
       ctx.fillRect(304, 107, 2, 118)
-      ctx.fillStyle = C.green
+      ctx.fillStyle = C.accent
       ctx.font = 'italic 56px ' + EDITORIAL
       ctx.fillText(date.MONTH_EN[m - 1], 331, 168)
       ctx.fillStyle = C.ink2
@@ -283,19 +283,19 @@ function createPainter() {
       const names = date.weekNames(weekStart)
       const lay = layout(y, m, weekStart)
       const cw = GRID.w / 7
-      ctx.fillStyle = '#E2E9DC'
+      ctx.fillStyle = '#EDEDED'
       ctx.fillRect(GRID.x, GRID.y - 52, GRID.w, 52)
       ctx.font = '500 30px ' + SANS
       ctx.textAlign = 'center'
       names.forEach((n, i) => {
-        ctx.fillStyle = n.we ? C.terra : C.ink2
+        ctx.fillStyle = n.we ? C.emphasis : C.ink2
         ctx.fillText(n.name, GRID.x + cw * (i + 0.5), GRID.y - 14)
       })
 
       // 周末底色、格线
       lay.cells.forEach(c => {
         if (c.inMonth && (c.wd === 0 || c.wd === 6)) {
-          ctx.fillStyle = 'rgba(189,143,127,0.075)'
+          ctx.fillStyle = 'rgba(100,100,100,0.075)'
           ctx.fillRect(c.x, c.y, c.w, c.h)
         }
       })
@@ -326,21 +326,21 @@ function createPainter() {
         ctx.font = '500 36px ' + NUMERALS
         const label = '' + c.d
         if (isToday) {
-          ctx.fillStyle = C.terra
+          ctx.fillStyle = C.ink
           ctx.beginPath()
           ctx.arc(c.x + 31, c.y + 30, 24, 0, Math.PI * 2)
           ctx.fill()
-          ctx.fillStyle = C.cream
+          ctx.fillStyle = C.white
           ctx.textAlign = 'center'
           ctx.fillText(label, c.x + 31, c.y + 42)
           ctx.textAlign = 'left'
         } else {
-          ctx.fillStyle = weekend ? C.terra : C.ink
+          ctx.fillStyle = weekend ? C.emphasis : C.ink
           ctx.fillText(label, c.x + 12, c.y + 42)
         }
         const fest = date.festival(y, m, c.d)
         if (fest) {
-          ctx.fillStyle = C.terra
+          ctx.fillStyle = C.emphasis
           ctx.font = '400 20px ' + SANS
           ctx.fillText(fest.slice(0, 3), c.x + 60, c.y + 38)
         }
@@ -356,14 +356,14 @@ function createPainter() {
         if (writing) {
           // 正在写的格子：虚线框 + 文末的光标
           ctx.save()
-          ctx.strokeStyle = C.terra
+          ctx.strokeStyle = C.emphasis
           ctx.lineWidth = 3
           ctx.setLineDash([9, 7])
           ctx.strokeRect(c.x + 4, c.y + 4, c.w - 8, c.h - 8)
           ctx.setLineDash([])
           const last = lines.length ? lines[lines.length - 1] : ''
           const row = Math.max(0, lines.length - 1)
-          ctx.fillStyle = C.terra
+          ctx.fillStyle = C.ink
           ctx.fillRect(box.x + ctx.measureText(last).width + 3, box.y + 2 + row * CELL_LINE, 3, 28)
           ctx.restore()
         }
@@ -395,7 +395,7 @@ function createPainter() {
       ctx.fillStyle = C.faint
       ctx.font = '500 26px ' + SANS
       ctx.fillText('____ / ____  —  ____ / ____', x0 + 380, 116)
-      ctx.fillStyle = C.terra
+      ctx.fillStyle = C.emphasis
       ctx.fillRect(x0, 140, 64, 6)
 
       const top = 178, rowH = 168
@@ -404,12 +404,12 @@ function createPainter() {
         const y = top + i * rowH
         const we = i >= 5
         // 星期圆章
-        ctx.strokeStyle = we ? C.terra : C.green
+        ctx.strokeStyle = we ? C.emphasis : C.accent
         ctx.lineWidth = 3
         ctx.beginPath()
         ctx.arc(x0 + 30, y + 40, 28, 0, Math.PI * 2)
         ctx.stroke()
-        ctx.fillStyle = we ? C.terra : C.green
+        ctx.fillStyle = we ? C.emphasis : C.accent
         ctx.font = '500 30px ' + SANS
         ctx.textAlign = 'center'
         ctx.fillText(n, x0 + 30, y + 51)
@@ -446,25 +446,25 @@ function createPainter() {
       return pixels(ctx, PW, PH)
     },
 
-    // 茶色书衣下的扉页。留白印在纸上，插画印在上层塑料上。
+    // 烟灰色书衣下的扉页。插画印在上层塑料上。
     coverInsert(year) {
       const PW = 512, PH = 1024
       const { ctx } = scratch(PW, PH)
       begin(ctx, PW, PH, 512, 720)
-      const kraft = ctx.createLinearGradient(20, 0, 480, 720)
-      kraft.addColorStop(0, '#A47448')
-      kraft.addColorStop(0.5, '#85502B')
-      kraft.addColorStop(1, '#633719')
-      ctx.fillStyle = kraft
+      const stock = ctx.createLinearGradient(20, 0, 480, 720)
+      stock.addColorStop(0, '#656565')
+      stock.addColorStop(0.5, '#404040')
+      stock.addColorStop(1, '#242424')
+      ctx.fillStyle = stock
       ctx.fillRect(0, 0, 512, 720)
 
       const gutter = ctx.createLinearGradient(0, 0, 70, 0)
-      gutter.addColorStop(0, 'rgba(44,21,10,0.34)')
-      gutter.addColorStop(1, 'rgba(44,21,10,0)')
+      gutter.addColorStop(0, 'rgba(12,12,12,0.34)')
+      gutter.addColorStop(1, 'rgba(12,12,12,0)')
       ctx.fillStyle = gutter
       ctx.fillRect(0, 0, 70, 720)
 
-      ctx.fillStyle = '#331C12'
+      ctx.fillStyle = '#F2F2F2'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'alphabetic'
       ctx.font = '500 70px ' + EDITORIAL
@@ -482,29 +482,29 @@ function createPainter() {
       coverFox(ctx)
       ctx.textAlign = 'center'
       ctx.textBaseline = 'alphabetic'
-      ctx.fillStyle = '#FFEDCC'
+      ctx.fillStyle = '#F3F3F3'
       ctx.font = 'italic 46px ' + EDITORIAL
       ctx.fillText('YouPage', 545, 1028)
       return pixels(ctx, P, P)
     },
 
-    // 封二的奶油纸衬和半透口袋，口袋开口远离装订边。
+    // 封二的浅灰纸衬和半透口袋，口袋开口远离装订边。
     lining() {
       const P = 512
       const { ctx } = scratch(P, P)
       begin(ctx, P, P, P, P)
       const paper = ctx.createLinearGradient(32, 0, 506, 512)
-      paper.addColorStop(0, '#FAECD4')
-      paper.addColorStop(1, '#C2A078')
+      paper.addColorStop(0, '#F0F0F0')
+      paper.addColorStop(1, '#B9B9B9')
       ctx.fillStyle = paper
       ctx.fillRect(0, 0, P, P)
       const pocket = ctx.createLinearGradient(0, 284, 0, 510)
-      pocket.addColorStop(0, 'rgba(123,72,33,0.10)')
-      pocket.addColorStop(1, 'rgba(123,72,33,0.38)')
+      pocket.addColorStop(0, 'rgba(55,55,55,0.10)')
+      pocket.addColorStop(1, 'rgba(55,55,55,0.38)')
       ctx.fillStyle = pocket
       roundRect(ctx, 22, 287, 440, 198, 13)
       ctx.fill()
-      ctx.strokeStyle = 'rgba(255,247,225,0.68)'
+      ctx.strokeStyle = 'rgba(255,255,255,0.68)'
       ctx.lineWidth = 1.5
       ctx.stroke()
       return pixels(ctx, P, P)
@@ -515,11 +515,11 @@ function createPainter() {
       const { ctx } = scratch(PW, PH)
       begin(ctx, PW, PH, 64, 96)
       const g = ctx.createLinearGradient(0, 0, 64, 96)
-      g.addColorStop(0, active ? '#547963' : '#D8E2D4')
-      g.addColorStop(1, active ? '#284B38' : '#B7CAB8')
+      g.addColorStop(0, active ? '#555555' : '#DEDEDE')
+      g.addColorStop(1, active ? '#252525' : '#BFBFBF')
       ctx.fillStyle = g
       ctx.fillRect(0, 0, 64, 96)
-      ctx.fillStyle = active ? '#FFF8E8' : '#2D4A3A'
+      ctx.fillStyle = active ? '#FAFAFA' : '#303030'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.font = '500 34px ' + NUMERALS
@@ -528,19 +528,19 @@ function createPainter() {
       return pixels(ctx, PW, PH)
     },
 
-    // 奶油色亚克力挂件，印一枚和封面插画呼应的脚印。
+    // 灰白亚克力挂件，印一枚和封面插画呼应的脚印。
     charm() {
       const P = 256
       const { ctx } = scratch(P, P)
       begin(ctx, P, P, P, P)
-      ctx.fillStyle = '#F8E8CF'
+      ctx.fillStyle = '#F5F5F5'
       ctx.fillRect(0, 0, P, P)
-      ctx.strokeStyle = '#B48A60'
+      ctx.strokeStyle = '#8B8B8B'
       ctx.lineWidth = 2.6
       ctx.beginPath()
       ctx.arc(128, 128, 102, 0, Math.PI * 2)
       ctx.stroke()
-      ctx.fillStyle = '#9E623A'
+      ctx.fillStyle = '#4A4A4A'
       ctx.beginPath()
       ctx.moveTo(81, 152)
       ctx.bezierCurveTo(94, 140, 99, 111, 128, 111)
@@ -570,8 +570,8 @@ function createPainter() {
         ctx.fillRect(0, 0, PW, PH)
       }
       if (id === 'stripe') {
-        fill('#F3D3BE')
-        ctx.strokeStyle = '#C96F43'
+        fill('#E4E4E4')
+        ctx.strokeStyle = '#787878'
         ctx.lineWidth = 10
         ctx.beginPath()
         for (let x = -PH - 32; x < PW + PH; x += 32) {
@@ -580,8 +580,8 @@ function createPainter() {
         }
         ctx.stroke()
       } else if (id === 'dots') {
-        fill('#F2D58C')
-        ctx.fillStyle = '#FFF8E9'
+        fill('#AFAFAF')
+        ctx.fillStyle = '#FAFAFA'
         ;[12, 32, 52].forEach((y, row) => {
           for (let x = 8 + (row % 2) * 8; x < PW + 8; x += 16) {
             ctx.beginPath()
@@ -590,22 +590,22 @@ function createPainter() {
           }
         })
       } else if (id === 'kraft') {
-        fill('#D9C39A')
+        fill('#C1C1C1')
         ctx.fillStyle = 'rgba(255,255,255,0.22)'
         for (let x = 0; x < PW; x += 16) ctx.fillRect(x, 0, 3, PH)
-        ctx.fillStyle = 'rgba(120,90,50,0.12)'
+        ctx.fillStyle = 'rgba(70,70,70,0.12)'
         for (let x = 9; x < PW; x += 32) ctx.fillRect(x, 0, 2, PH)
       } else if (id === 'forest') {
-        fill('#30533A')
-        ctx.fillStyle = '#FCF0DA'
+        fill('#363636')
+        ctx.fillStyle = '#ECECEC'
         for (let x = 8; x < PW; x += 32) ctx.fillRect(x, 29.5, 16, 5)
       } else if (id === 'sky') {
-        fill('#EAF2F4')
-        ctx.fillStyle = '#CFE0E6'
+        fill('#F0F0F0')
+        ctx.fillStyle = '#D1D1D1'
         for (let x = 0; x < PW; x += 16) ctx.fillRect(x, 0, 8, PH)
       } else {
-        fill('#E4ECD9')
-        ctx.fillStyle = 'rgba(48,83,58,0.28)'
+        fill('#EAEAEA')
+        ctx.fillStyle = 'rgba(55,55,55,0.28)'
         for (let x = 0; x < PW; x += 32) ctx.fillRect(x, 0, 16, PH)
         for (let y = 0; y < PH; y += 32) ctx.fillRect(0, y, PW, 16)
       }
@@ -648,15 +648,15 @@ function createPainter() {
 
 // 胶带卷顶面的颜色：[底色, 层与层之间的线]
 const TAPE_EDGE = {
-  gingham: ['#DCE6D0', '#8FA987'],
-  stripe: ['#F0CDB6', '#C96F43'],
-  dots: ['#F2D58C', '#C9A24E'],
-  kraft: ['#D9C39A', '#A88C5E'],
-  forest: ['#3A6146', '#1E3826'],
-  sky: ['#E3EEF1', '#9DBAC5']
+  gingham: ['#E2E2E2', '#999999'],
+  stripe: ['#DADADA', '#787878'],
+  dots: ['#AFAFAF', '#777777'],
+  kraft: ['#C1C1C1', '#898989'],
+  forest: ['#555555', '#252525'],
+  sky: ['#EAEAEA', '#ACACAC']
 }
 
-// 活页环用的 matcap：一颗抛光金属球的样子（上亮、中间一道暗带、底部暖色反光）
+// 活页环用的 matcap：一颗抛光金属球的样子（上亮、中间一道暗带、底部反光）
 function matcap(size) {
   const data = new Uint8Array(size * size * 4)
   for (let y = 0; y < size; y++) {
@@ -666,12 +666,10 @@ function matcap(size) {
       let v = 0.5 + 0.34 * ny
       v += 0.6 * Math.exp(-((nx + 0.35) * (nx + 0.35) + (ny - 0.45) * (ny - 0.45)) / 0.05)
       v -= 0.34 * Math.exp(-((ny + 0.2) * (ny + 0.2)) / 0.02) * (1 - 0.4 * nx * nx)
-      const warm = 0.3 * Math.exp(-((ny + 0.75) * (ny + 0.75)) / 0.04)
-      v = Math.max(0.1, Math.min(1, v + warm))
+      const reflected = 0.3 * Math.exp(-((ny + 0.75) * (ny + 0.75)) / 0.04)
+      const shade = Math.max(0.1, Math.min(1, v + reflected)) * 255
       const i = (y * size + x) * 4
-      data[i] = Math.min(255, v * 255 + warm * 40)
-      data[i + 1] = Math.min(255, v * 250)
-      data[i + 2] = Math.min(255, v * 240 - warm * 30)
+      data[i] = data[i + 1] = data[i + 2] = shade
       data[i + 3] = 255
     }
   }
@@ -684,9 +682,7 @@ function pageEdge(alongU) {
   const data = new Uint8Array(n * 4)
   for (let i = 0; i < n; i++) {
     const tint = i % 5 === 3 ? 23 : i % 3 * 4
-    data[i * 4] = 249 - tint
-    data[i * 4 + 1] = 246 - tint
-    data[i * 4 + 2] = 231 - tint
+    data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = 249 - tint
     data[i * 4 + 3] = 255
   }
   return alongU ? { data, width: n, height: 1 } : { data, width: 1, height: n }

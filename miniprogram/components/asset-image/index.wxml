@@ -1,1 +1,5 @@
-<image class="image-class" src="{{resolved}}" mode="{{mode}}" data-source="{{resolved}}" binderror="onImageError" />
+<block wx:if="{{previewLocal}}">
+  <image wx:if="{{!cloudReady}}" class="image-class" src="{{src}}" mode="{{mode}}" />
+  <image wx:if="{{resolved && resolved !== src}}" class="image-class" src="{{resolved}}" mode="{{mode}}" data-source="{{resolved}}" style="{{cloudReady ? '' : 'position: absolute; opacity: 0; pointer-events: none'}}" bindload="onCloudLoad" binderror="onImageError" />
+</block>
+<image wx:else class="image-class" src="{{resolved}}" mode="{{mode}}" data-source="{{resolved}}" binderror="onImageError" />

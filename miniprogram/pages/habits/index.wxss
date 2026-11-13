@@ -48,7 +48,7 @@
   flex-shrink: 0;
   width: 84rpx;
   height: 84rpx;
-  filter: drop-shadow(0 2rpx 4rpx rgba(80, 56, 24, 0.22));
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.22));
 }
 .h-info {
   flex: 1;
@@ -75,12 +75,12 @@
   border-radius: 32rpx;
   font-size: 26rpx;
   font-weight: 600;
-  color: var(--terra);
-  border: 2rpx solid var(--terra);
+  color: var(--emphasis);
+  border: 2rpx solid var(--emphasis);
 }
 .seal-btn.on {
   color: var(--paper);
-  background: var(--terra);
+  background: var(--emphasis);
 }
 /* 每行 8 个 */
 .dots {
@@ -105,8 +105,8 @@
   transition: background 0.15s, transform 0.15s;
 }
 .dot.today {
-  border-color: var(--terra);
-  color: var(--terra);
+  border-color: var(--emphasis);
+  color: var(--emphasis);
   font-weight: 700;
 }
 .dot.future {
@@ -116,8 +116,8 @@
 .dot.on {
   color: var(--paper);
   font-weight: 700;
-  background: var(--terra);
-  border-color: var(--terra);
+  background: var(--emphasis);
+  border-color: var(--emphasis);
   transform: rotate(-8deg);
 }
 
@@ -152,11 +152,11 @@
   height: 96rpx;
   border-radius: 20rpx;
   font-size: 28rpx;
-  color: var(--green);
-  border: 3rpx dashed var(--green-soft);
+  color: var(--accent);
+  border: 3rpx dashed var(--accent-soft);
 }
 .add:active {
-  background: rgba(48, 83, 58, 0.06);
+  background: rgba(26, 26, 26, 0.06);
 }
 .add-plus {
   margin-right: 8rpx;
@@ -217,7 +217,7 @@
   border-radius: 20rpx;
 }
 .icon.on {
-  background: var(--green-wash);
+  background: var(--accent-wash);
 }
 .icon-img {
   width: 92rpx;

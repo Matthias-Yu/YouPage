@@ -1,6 +1,6 @@
 <view class="top" style="height:{{topH}}px">
   <view class="masthead" style="top:{{navTop}}px">
-    <view class="masthead-mark"><asset-image image-class="masthead-icon" src="/assets/icons/book-light.svg" mode="aspectFit" /></view>
+    <asset-image image-class="masthead-mark" src="/assets/logo.png" mode="aspectFit" />
     <text class="masthead-name">有页</text>
     <text wx:if="{{!ready}}" class="masthead-status">正在加载…</text>
     <text wx:elif="{{ink}}" class="masthead-status">月历笔记</text>
@@ -64,7 +64,8 @@
       <button class="palette-apply" bindtap="applyPalette">使用此颜色</button>
     </view>
   </view>
-  <block wx:else>
+  <view wx:else class="menu-layout">
+    <view class="menu-panels">
     <view wx:if="{{tray}}" class="tray">
       <view class="tray-tabs">
         <view wx:for="{{packs}}" wx:key="id" class="tray-tab {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">{{item.name}}</view>
@@ -97,24 +98,24 @@
       <view class="drawing-row drawing-primary">
         <view class="drawing-pens">
           <view wx:for="{{drawTools}}" wx:key="id" class="drawing-key {{!pickingDay && brush === item.id ? 'chosen' : ''}}" data-id="{{item.id}}" bindtap="selectBrush" role="button" aria-label="{{item.name + (!pickingDay && brush === item.id ? '，已选中' : '')}}" hover-class="drawing-pressed">
-            <image class="drawing-glyph" src="{{'/pages/home/icons/' + item.id + '.svg'}}" mode="aspectFit" />
+            <asset-image image-class="drawing-glyph" src="{{'/assets/icons/drawing/' + item.id + '.svg'}}" mode="aspectFit" preview-local />
           </view>
           <view class="drawing-key {{pickingDay ? 'chosen' : ''}}" bindtap="pickCropDay" role="button" aria-label="{{pickingDay ? '照片裁切，已选中' : '照片裁切'}}" hover-class="drawing-pressed">
-            <image class="drawing-glyph" src="/pages/home/icons/crop.svg" mode="aspectFit" />
+            <asset-image image-class="drawing-glyph" src="/assets/icons/drawing/crop.svg" mode="aspectFit" preview-local />
           </view>
         </view>
         <view class="drawing-actions">
           <view class="drawing-key {{!canUndo ? 'dimmed' : ''}}" bindtap="undoInk" role="button" aria-label="撤销" aria-disabled="{{!canUndo}}" hover-class="{{canUndo ? 'drawing-pressed' : 'none'}}">
-            <image class="drawing-glyph" src="/pages/home/icons/undo.svg" mode="aspectFit" />
+            <asset-image image-class="drawing-glyph" src="/assets/icons/drawing/undo.svg" mode="aspectFit" preview-local />
           </view>
           <view class="drawing-key {{!canRedo ? 'dimmed' : ''}}" bindtap="redoInk" role="button" aria-label="重做" aria-disabled="{{!canRedo}}" hover-class="{{canRedo ? 'drawing-pressed' : 'none'}}">
-            <image class="drawing-glyph drawing-redo" src="/pages/home/icons/undo.svg" mode="aspectFit" />
+            <asset-image image-class="drawing-glyph drawing-redo" src="/assets/icons/drawing/undo.svg" mode="aspectFit" preview-local />
           </view>
           <view class="drawing-key" bindtap="resetCalendarZoom" role="button" aria-label="还原月历视图" hover-class="drawing-pressed">
-            <image class="drawing-glyph" src="/pages/home/icons/fit.svg" mode="aspectFit" />
+            <asset-image image-class="drawing-glyph" src="/assets/icons/drawing/fit.svg" mode="aspectFit" preview-local />
           </view>
           <view class="drawing-key {{!canClear ? 'dimmed' : ''}}" bindtap="clearInk" role="button" aria-label="清空本月笔迹" aria-disabled="{{!canClear}}" hover-class="{{canClear ? 'drawing-pressed' : 'none'}}">
-            <image class="drawing-glyph" src="/pages/home/icons/clear.svg" mode="aspectFit" />
+            <asset-image image-class="drawing-glyph" src="/assets/icons/drawing/clear.svg" mode="aspectFit" preview-local />
           </view>
         </view>
       </view>
@@ -122,7 +123,7 @@
         <view class="ink-colors {{brush === 'eraser' || pickingDay ? 'dimmed' : ''}}">
           <view wx:for="{{colors}}" wx:key="value" class="swatch {{color === item.value ? 'picked' : ''}}" style="--swatch: {{item.value}}" data-color="{{item.value}}" role="button" aria-label="{{item.name}}" aria-disabled="{{brush === 'eraser' || pickingDay}}" bindtap="selectColor"><view class="swatch-dot"></view></view>
           <view class="swatch" bindtap="openPalette" role="button" aria-label="打开自定义色盘" aria-disabled="{{brush === 'eraser' || pickingDay}}" hover-class="drawing-pressed">
-            <view class="palette-wheel"><view class="palette-wheel-center" style="background-color: {{color}}"></view></view>
+            <asset-image image-class="palette-glyph" src="/assets/icons/drawing/palette.svg" mode="aspectFit" preview-local />
           </view>
         </view>
         <view class="ink-weights {{pickingDay ? 'dimmed' : ''}}">
@@ -133,6 +134,7 @@
       </view>
     </view>
 
+    </view>
     <view class="month-rail">
       <block wx:if="{{open}}">
         <view class="rail-side" bindtap="toggleOpen" hover-class="control-pressed" role="button">合上</view>
@@ -154,27 +156,27 @@
 
     <view class="dock">
       <view class="dock-item {{tray || toolsOpen ? '' : 'is-active'}}" bindtap="showBook" hover-class="control-pressed" role="button">
-        <view class="dock-icon"><asset-image image-class="dock-img" src="{{tray || toolsOpen ? '/assets/icons/book.svg' : '/assets/icons/book-light.svg'}}" mode="aspectFit" /></view>
+        <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/book.svg" mode="aspectFit" preview-local /></view>
         <text>手帐</text>
       </view>
       <view class="dock-item {{tray ? 'is-active' : ''}}" bindtap="toggleTray" hover-class="control-pressed" role="button" aria-label="{{tray ? '收起贴纸' : '打开贴纸'}}">
-        <view class="dock-icon"><asset-image image-class="dock-img" src="{{tray ? '/assets/icons/sticker-light.svg' : '/assets/icons/sticker.svg'}}" mode="aspectFit" /></view>
+        <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/sticker.svg" mode="aspectFit" preview-local /></view>
         <text>贴纸</text>
       </view>
       <view class="dock-item {{toolsOpen ? 'is-active' : ''}}" bindtap="toggleTools" hover-class="control-pressed" role="button" aria-label="{{toolsOpen ? '收起工具' : '打开工具'}}">
-        <view class="dock-icon"><view class="dock-pencil"></view></view>
+        <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/pencil.svg" mode="aspectFit" preview-local /></view>
         <text>工具</text>
       </view>
       <view class="dock-item" bindtap="goHabits" hover-class="control-pressed" role="button">
-        <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/seal.svg" mode="aspectFit" /></view>
+        <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/seal.svg" mode="aspectFit" preview-local /></view>
         <text>打卡</text>
       </view>
       <view class="dock-item" bindtap="goMe" hover-class="control-pressed" role="button">
-        <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/me.svg" mode="aspectFit" /></view>
+        <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/me.svg" mode="aspectFit" preview-local /></view>
         <text>我的</text>
       </view>
     </view>
-  </block>
+  </view>
 </view>
 
 <!-- 写字：输入栏贴着键盘 -->

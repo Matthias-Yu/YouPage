@@ -1,12 +1,5 @@
 page {
-  --desk: #E9EBE4;
-  --paper: #FCF9EF;
-  --paper-hi: #FFFDF5;
-  --line: #D6DBCF;
-  --line-2: #B9C3B3;
-  --terra: #A35648;
-  --ink-2: #59665E;
-  --ink-3: #687369;
+  --ink-2: #595959;
 }
 
 .wrap {
@@ -19,10 +12,10 @@ page {
   position: relative;
   min-height: calc(100vh - 230rpx - env(safe-area-inset-bottom));
   padding: 36rpx 36rpx 90rpx;
-  background: linear-gradient(110deg, #EBEADF, #FFFDF5 9%, #FCF9EF 76%, #F7F3E7);
+  background: linear-gradient(110deg, #EDEDED, #FFFFFF 9%, #FAFAFA 76%, #F6F6F6);
   border-radius: 10rpx;
   border-bottom-right-radius: 0;
-  box-shadow: inset 0 0 0 1rpx #FFFDF8, 0 3rpx 0 #D9DDCF, 0 6rpx 0 #F8F6E9, 0 12rpx 26rpx rgba(41, 58, 47, 0.13);
+  box-shadow: inset 0 0 0 1rpx #FFFFFF, 0 3rpx 0 #D7D7D7, 0 6rpx 0 #F6F6F6, 0 12rpx 26rpx rgba(0, 0, 0, 0.13);
 }
 .page-paper::after {
   content: '';
@@ -31,7 +24,7 @@ page {
   bottom: 0;
   width: 60rpx;
   height: 60rpx;
-  background: linear-gradient(315deg, var(--desk) 49%, #D0D7C6 50%, #E8EADB 66%, #FCF9EF 90%);
+  background: linear-gradient(315deg, var(--desk) 49%, #CFCFCF 50%, #E8E8E8 66%, #FAFAFA 90%);
 }
 .deco {
   position: absolute;
@@ -59,7 +52,7 @@ page {
   color: var(--ink);
 }
 .hd-d.today {
-  color: var(--terra);
+  color: var(--emphasis);
 }
 .hd-meta {
   flex: 1;
@@ -84,7 +77,7 @@ page {
   color: var(--ink-2);
 }
 .hd-fest {
-  color: var(--terra);
+  color: var(--emphasis);
 }
 .stamps {
   display: flex;
@@ -107,7 +100,7 @@ page {
   width: 92rpx;
   height: 92rpx;
   flex-shrink: 0;
-  filter: drop-shadow(0 2rpx 4rpx rgba(80, 56, 24, 0.22));
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.22));
 }
 .stamp-ph {
   font-size: 20rpx;
@@ -122,7 +115,7 @@ page {
   padding: 0 20rpx;
   height: 84rpx;
   border-radius: 16rpx;
-  background: rgba(223, 232, 219, 0.46);
+  background: rgba(232, 232, 232, 0.46);
   border: 1rpx solid var(--line);
 }
 .plan-l {
@@ -133,8 +126,8 @@ page {
   line-height: 40rpx;
   border-radius: 8rpx;
   font-size: 20rpx;
-  color: var(--green-deep);
-  background: #DCE7D9;
+  color: var(--accent-deep);
+  background: #E1E1E1;
 }
 .plan-in {
   flex: 1;
@@ -142,7 +135,7 @@ page {
   height: 80rpx;
   font-family: var(--sans);
   font-size: 30rpx;
-  color: #2F4F66;
+  color: #303030;
 }
 
 /* 分区 */
@@ -157,7 +150,7 @@ page {
   font-size: 28rpx;
   font-weight: 500;
   letter-spacing: 1rpx;
-  color: var(--green);
+  color: var(--accent);
 }
 .sec-n {
   font-size: 22rpx;
@@ -177,7 +170,7 @@ page {
   width: 40rpx;
   height: 40rpx;
   margin-right: 20rpx;
-  border: 3rpx solid var(--green);
+  border: 3rpx solid var(--accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -191,12 +184,12 @@ page {
   width: 24rpx;
   height: 24rpx;
   border-radius: 50%;
-  background: var(--terra);
+  background: var(--emphasis);
   transform: scale(0);
   transition: transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 .todo.done .chk {
-  border-color: var(--terra);
+  border-color: var(--emphasis);
 }
 .todo.done .chk-dot {
   transform: scale(1);
@@ -239,10 +232,10 @@ page {
   justify-content: space-between;
   height: 112rpx;
   padding: 0 20rpx;
-  background: linear-gradient(165deg, #FBFCF7, #F0F3EA);
+  background: linear-gradient(165deg, #FCFCFC, #F2F2F2);
   border: 2rpx solid rgba(255, 255, 255, 0.9);
   border-radius: 36rpx;
-  box-shadow: 0 3rpx 5rpx rgba(41, 58, 47, 0.08), 0 8rpx 24rpx rgba(41, 58, 47, 0.12);
+  box-shadow: 0 3rpx 5rpx rgba(0, 0, 0, 0.08), 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
 }
 .tools {
   display: flex;
@@ -258,7 +251,7 @@ page {
   min-width: 0;
   font-size: 24rpx;
   font-weight: 500;
-  color: var(--ink-2);
+  color: #555;
 }
 .tool:active {
   opacity: 0.6;
@@ -272,6 +265,9 @@ page {
   width: 88rpx;
   height: 88rpx;
   flex-shrink: 0;
+}
+.bar .chev {
+  border-color: #303030;
 }
 
 /* 心情 / 天气选项 */
@@ -289,12 +285,12 @@ page {
   border-radius: 20rpx;
 }
 .opt.on {
-  background: var(--green-wash);
+  background: var(--accent-wash);
 }
 .opt-img {
   width: 104rpx;
   height: 104rpx;
-  filter: drop-shadow(0 2rpx 4rpx rgba(80, 56, 24, 0.22));
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.22));
 }
 .opt-tx {
   margin-top: 6rpx;
@@ -322,7 +318,7 @@ page {
 }
 .pack.on {
   color: var(--paper);
-  background: var(--green);
+  background: var(--accent);
 }
 .pack-tag {
   position: absolute;
@@ -348,13 +344,13 @@ page {
   height: 132rpx;
 }
 .cell:active {
-  background: var(--green-wash);
+  background: var(--accent-wash);
   border-radius: 20rpx;
 }
 .cell-img {
   width: 132rpx;
   height: 132rpx;
-  filter: drop-shadow(0 2rpx 4rpx rgba(80, 56, 24, 0.22));
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.22));
 }
 .cell.wide .cell-img {
   width: 232rpx;

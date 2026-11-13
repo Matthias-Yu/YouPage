@@ -77,13 +77,13 @@
   <view class="round-btn" data-n="-1" bindtap="shift" role="button" aria-label="前一天"><view class="chev l"></view></view>
   <view class="tools">
     <view class="tool" data-sheet="sticker" bindtap="openSheet" role="button">
-      <asset-image image-class="tool-ic" src="/assets/icons/sticker.svg" /><text>贴纸</text>
+      <asset-image image-class="tool-ic" src="/assets/icons/sticker.svg" mode="aspectFit" /><text>贴纸</text>
     </view>
     <view class="tool" data-sheet="tape" bindtap="openSheet" role="button">
-      <asset-image image-class="tool-ic" src="/assets/icons/tape.svg" /><text>胶带</text>
+      <asset-image image-class="tool-ic" src="/assets/icons/tape.svg" mode="aspectFit" /><text>胶带</text>
     </view>
     <view class="tool" bindtap="pickPhoto" role="button">
-      <asset-image image-class="tool-ic" src="/assets/icons/photo.svg" /><text>照片</text>
+      <asset-image image-class="tool-ic" src="/assets/icons/photo.svg" mode="aspectFit" /><text>照片</text>
     </view>
   </view>
   <view class="round-btn" data-n="1" bindtap="shift" role="button" aria-label="后一天"><view class="chev r"></view></view>

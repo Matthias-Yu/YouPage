@@ -125,13 +125,13 @@ Page({
     if (!habit) return
     wx.showActionSheet({
       itemList: ['删除「' + habit.name + '」'],
-      itemColor: '#C96F43',
+      itemColor: '#424242',
       success: () => {
         wx.showModal({
           title: '删除这个习惯？',
           content: '「' + habit.name + '」和它的打卡记录将不再显示。',
           confirmText: '删除',
-          confirmColor: '#C96F43',
+          confirmColor: '#424242',
           success: r => {
             if (!r.confirm) return
             store.saveHabits(store.getHabits().filter(h => h.id !== id))

@@ -2,8 +2,8 @@
 page {
   height: 100%;
   overflow: hidden;
-  background: #E9EBE4;
-  color: #283B32;
+  background: var(--desk);
+  color: var(--ink);
 }
 
 .top {
@@ -11,7 +11,7 @@ page {
   top: 0;
   left: 0;
   right: 0;
-  background: #E9EBE4;
+  background: var(--desk);
 }
 .masthead {
   position: absolute;
@@ -23,16 +23,8 @@ page {
 .masthead-mark {
   width: 29px;
   height: 29px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border-radius: 9px;
-  background: #29483A;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
-}
-.masthead-icon {
-  width: 17px;
-  height: 17px;
+  flex-shrink: 0;
 }
 .masthead-name {
   margin-left: 8px;
@@ -44,7 +36,7 @@ page {
 .masthead-status {
   margin-left: 12px;
   font-size: 12px;
-  color: #59665E;
+  color: #595959;
 }
 
 .gl {
@@ -58,7 +50,27 @@ page {
   left: 0;
   right: 0;
   bottom: 0;
-  background: #E9EBE4;
+  background: var(--desk);
+}
+.menu-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 9px;
+}
+.menu-panels {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 0;
+  overflow: hidden;
+}
+.menu-layout .month-rail,
+.menu-layout .dock,
+.menu-panels .tray,
+.menu-panels .drawing-tools {
+  flex-shrink: 0;
 }
 .month-rail,
 .dock,
@@ -82,11 +94,11 @@ page {
   line-height: 44px;
   text-align: center;
   font-size: 13px;
-  color: #536258;
+  color: #555555;
   border-radius: 12px;
 }
 .rail-today {
-  color: #325B46;
+  color: #353535;
   font-weight: 500;
 }
 .month-picker {
@@ -94,7 +106,7 @@ page {
   align-items: center;
   justify-content: center;
   min-width: 0;
-  color: #283B32;
+  color: #202020;
 }
 .month-label {
   display: flex;
@@ -117,7 +129,7 @@ page {
 }
 .month-year {
   margin-left: 9px;
-  color: #59665E;
+  color: #595959;
   font-size: 12px;
 }
 .month-arrow {
@@ -133,7 +145,7 @@ page {
   width: 7px;
   height: 7px;
   border-width: 1.5px;
-  border-color: #56635A;
+  border-color: #303030;
 }
 .open-book {
   height: 38px;
@@ -142,9 +154,9 @@ page {
   display: flex;
   align-items: center;
   border-radius: 11px;
-  border: 1px solid #CFD9CD;
-  background: #F5F7F0;
-  color: #29483A;
+  border: 1px solid #CDCDCD;
+  background: #F8F8F8;
+  color: #262626;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.25px;
@@ -160,8 +172,8 @@ page {
   align-items: stretch;
   border-radius: 21px;
   border: 1px solid rgba(255, 255, 255, 0.9);
-  background: linear-gradient(165deg, #FBFCF7, #F0F3EA);
-  box-shadow: 0 1px 2px rgba(41, 58, 47, 0.08), 0 5px 14px rgba(41, 58, 47, 0.09);
+  background: #FAFAFA;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 5px 14px rgba(0, 0, 0, 0.08);
 }
 .dock-item {
   flex: 1;
@@ -171,7 +183,7 @@ page {
   align-items: center;
   min-width: 0;
   border-radius: 15px;
-  color: #56635A;
+  color: #555;
   font-size: 12px;
   font-weight: 500;
   line-height: 16px;
@@ -183,49 +195,21 @@ page {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 14px;
 }
 .dock-img {
   width: 21px;
   height: 21px;
 }
-.dock-item.is-active {
-  color: #29483A;
-}
+.dock-item.is-active { color: #141414; }
 .is-active .dock-icon {
-  background: linear-gradient(150deg, #3D6551, #29483A);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 2px 4px rgba(42, 73, 57, 0.15);
+  background: #141414;
+}
+.is-active .dock-img {
+  filter: brightness(0) invert(1);
 }
 .control-pressed {
-  background: rgba(53, 85, 66, 0.1);
-}
-
-.dock-pencil {
-  width: 16px;
-  height: 7px;
-  border: 1.5px solid currentColor;
-  border-radius: 2px 4px 4px 2px;
-  transform: rotate(-43deg);
-  position: relative;
-}
-.dock-pencil::before {
-  content: '';
-  position: absolute;
-  left: -5px;
-  top: -1.5px;
-  border: 3.5px solid transparent;
-  border-right: 4px solid currentColor;
-  border-left: 0;
-}
-.dock-pencil::after {
-  content: '';
-  position: absolute;
-  right: 3px;
-  height: 100%;
-  border-right: 1.5px solid currentColor;
-}
-.is-active .dock-pencil {
-  color: #FFF9E9;
+  background: rgba(20, 20, 20, 0.1);
 }
 
 .drawing-tools {
@@ -234,8 +218,8 @@ page {
   padding: 4px 7px;
   border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: 17px;
-  background: linear-gradient(150deg, #FCFCF7, #EEF2E8);
-  box-shadow: 0 3px 9px rgba(41, 58, 47, 0.1);
+  background: #FAFAFA;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.09);
 }
 .drawing-row {
   display: flex;
@@ -255,10 +239,11 @@ page {
 }
 .drawing-actions {
   margin-left: auto;
-  border-left: 1px solid #DBE3D7;
+  border-left: 1px solid #E4E4E4;
   padding-left: 3px;
 }
 .drawing-key {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,6 +254,7 @@ page {
   border-radius: 11px;
 }
 .drawing-glyph {
+  position: relative;
   display: block;
   width: 23px;
   height: 23px;
@@ -276,16 +262,25 @@ page {
 .drawing-redo {
   transform: scaleX(-1);
 }
-.drawing-key.chosen {
-  background: #DBE9DD;
-  box-shadow: inset 0 0 0 1px #C2D5C6;
+.drawing-key.chosen::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 2px;
+  right: 2px;
+  border-radius: 10px;
+  background: #141414;
+}
+.drawing-key.chosen .drawing-glyph {
+  filter: brightness(0) invert(1);
 }
 .drawing-pressed {
   opacity: 0.68;
 }
 .drawing-options {
   height: 39px;
-  border-top: 1px solid #E2E9DE;
+  border-top: 1px solid #E4E4E4;
 }
 .ink-colors,
 .ink-weights {
@@ -312,20 +307,11 @@ page {
   background: var(--swatch);
 }
 .swatch.picked .swatch-dot {
-  box-shadow: 0 0 0 1.5px #F5F7F0, 0 0 0 3px var(--swatch);
+  box-shadow: 0 0 0 1.5px #FAFAFA, 0 0 0 3px #141414;
 }
-.palette-wheel {
-  width: 22px;
-  height: 22px;
-  padding: 3px;
-  border-radius: 50%;
-  background: conic-gradient(#F26863, #F6C85A, #64B97E, #53BFC3, #657FE5, #CB6AB0, #F26863);
-}
-.palette-wheel-center {
-  width: 100%;
-  height: 100%;
-  border: 1px solid #F7F8F1;
-  border-radius: 50%;
+.palette-glyph {
+  width: 23px;
+  height: 23px;
 }
 .size-btn {
   display: flex;
@@ -336,12 +322,12 @@ page {
   border-radius: 8px;
 }
 .size-btn.chosen {
-  background: #DBE9DD;
+  background: #E9E9E9;
 }
 .weight-mark {
   width: 17px;
   border-radius: 4px;
-  background: #365344;
+  background: #141414;
 }
 .dimmed {
   opacity: 0.45;
@@ -357,8 +343,8 @@ page {
   padding: 10px 12px;
   border: 1px solid #FFF;
   border-radius: 17px;
-  background: #F7F8F1;
-  box-shadow: 0 3px 12px rgba(41, 58, 47, 0.13);
+  background: #FAFAFA;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.13);
 }
 .palette-heading,
 .palette-footer {
@@ -371,18 +357,18 @@ page {
 }
 .palette-title {
   margin-right: auto;
-  color: #29483A;
+  color: #262626;
   font-size: 14px;
   font-weight: 600;
 }
 .palette-preview {
   width: 18px;
   height: 18px;
-  border: 1px solid rgba(41, 58, 47, 0.18);
+  border: 1px solid rgba(0, 0, 0, 0.18);
   border-radius: 50%;
 }
 .palette-hex {
-  color: #536258;
+  color: #555555;
   font-family: monospace;
   font-size: 12px;
 }
@@ -434,12 +420,12 @@ page {
   font-size: 13px;
 }
 .palette-cancel {
-  color: #365344;
-  background: #E7EEE3;
+  color: #303030;
+  background: #EAEAEA;
 }
 .palette-apply {
-  color: #FFF8E6;
-  background: #365C48;
+  color: #FFFFFF;
+  background: #303030;
 }
 .palette-cancel::after,
 .palette-apply::after {
@@ -453,8 +439,8 @@ page {
   padding: 5px 7px 7px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 17px;
-  background: linear-gradient(150deg, #FCFCF7, #EEF2E8);
-  box-shadow: 0 3px 9px rgba(41, 58, 47, 0.1);
+  background: linear-gradient(150deg, #FCFCFC, #F0F0F0);
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.1);
 }
 .tray-tabs {
   display: flex;
@@ -468,12 +454,12 @@ page {
   text-align: center;
   border-radius: 8px 8px 0 0;
   font-size: 12px;
-  color: #536258;
+  color: #555555;
 }
 .tray-tab.on {
-  color: #29483A;
+  color: #262626;
   font-weight: 500;
-  background: #E2E9DF;
+  background: #E4E4E4;
 }
 .tray-items {
   display: flex;
@@ -481,8 +467,8 @@ page {
   align-content: flex-start;
   height: 84px;
   border-radius: 4px 4px 11px 11px;
-  background: linear-gradient(172deg, #E3EBDF 0%, #F7F8F2 48%, #F0F3EA 82%, #F9FAF5 100%);
-  box-shadow: inset 0 1px 0 rgba(70, 97, 78, 0.12), inset 0 -1px 0 #FFF;
+  background: linear-gradient(172deg, #E5E5E5 0%, #F7F7F7 48%, #F2F2F2 82%, #FAFAFA 100%);
+  box-shadow: inset 0 1px 0 rgba(20, 20, 20, 0.12), inset 0 -1px 0 #FFF;
 }
 .tray-item {
   width: 16.666%;
@@ -501,7 +487,7 @@ page {
 .tray-img {
   width: 39px;
   height: 39px;
-  filter: drop-shadow(0 1px 1px rgba(43, 55, 44, 0.24));
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.24));
 }
 .tray-item.wide .tray-img {
   width: 90%;
@@ -514,7 +500,7 @@ page {
   height: 27px;
   font-family: var(--numerals);
   font-size: 11px;
-  color: #536258;
+  color: #555555;
 }
 .tray-arrow {
   display: flex;
@@ -546,23 +532,23 @@ page {
   padding: 14px 16px 10px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.9);
-  background: #F8F9F2;
-  box-shadow: 0 4px 16px rgba(41, 58, 47, 0.1);
+  background: #FAFAFA;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 .c-t {
   display: block;
   font-size: 17px;
   font-weight: 600;
-  color: #30533A;
+  color: #262626;
 }
 .c-p {
   margin-top: 6px;
   font-size: 13px;
   line-height: 20px;
-  color: #536258;
+  color: #555555;
 }
 .c-a {
-  color: #A35648;
+  color: #424242;
 }
 .c-btns {
   display: flex;
@@ -584,20 +570,20 @@ page {
 .c-no {
   width: auto !important;
   margin-right: 10px !important;
-  color: #536258 !important;
-  background: #E9EDE3 !important;
+  color: #555555 !important;
+  background: #EAEAEA !important;
 }
 .c-ok {
   width: auto !important;
-  color: #FCF0DA !important;
-  background: #30533A !important;
+  color: #FAFAFA !important;
+  background: #262626 !important;
 }
 .c-s {
   display: block;
   margin-top: 8px;
   text-align: center;
   font-size: 11px;
-  color: #667267;
+  color: #666666;
 }
 
 /* 写字时的输入栏 */
@@ -610,8 +596,8 @@ page {
   height: 54px;
   box-sizing: content-box;
   padding: 0 12px;
-  background: #F8F9F2;
-  border-top: 1px solid #D7DFD3;
+  background: #FAFAFA;
+  border-top: 1px solid #D8D8D8;
 }
 .ink-date {
   flex-shrink: 0;
@@ -619,7 +605,7 @@ page {
   font-size: 14px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: #A35648;
+  color: #424242;
 }
 .ink-in {
   flex: 1;
@@ -629,11 +615,11 @@ page {
   border-radius: 10px;
   font-family: var(--sans);
   font-size: 16px;
-  color: #2F4F66;
-  background: #EAEEE4;
+  color: #303030;
+  background: #ECECEC;
 }
 .ink-ph {
-  color: #697669;
+  color: #676767;
 }
 .ink-btn {
   flex-shrink: 0;
@@ -643,12 +629,12 @@ page {
   line-height: 34px;
   border-radius: 17px;
   font-size: 13px;
-  color: #FCF0DA;
-  background: #30533A;
+  color: #FAFAFA;
+  background: #262626;
 }
 .ink-btn.line {
   line-height: 32px;
-  color: #30533A;
+  color: #262626;
   background: transparent;
-  border: 1px solid #30533A;
+  border: 1px solid #262626;
 }

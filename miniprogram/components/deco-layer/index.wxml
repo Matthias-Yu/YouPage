@@ -49,7 +49,7 @@
           catchtouchend="{{g.rotEnd}}"
           catchtouchcancel="{{g.rotEnd}}"
         >
-          <asset-image image-class="hd-ic" src="/assets/icons/rotate-light.svg" />
+          <asset-image image-class="hd-ic" src="/assets/icons/rotate-light.svg" mode="aspectFit" />
         </view>
       </block>
     </view>

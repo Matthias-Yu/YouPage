@@ -38,7 +38,7 @@ tools/
   gen-sticker-atlas.py     打包 3D 用的贴纸和月份插画
   check.js                 逻辑自测
   auto.ps1                 开发者工具自动化（点击、截图）
-design/logo-640.png        图标原图
+design/logo-640.png        微信小程序头像用图
 ```
 
 ## 3D 场景要点
@@ -137,6 +137,6 @@ $env:ELECTRON_RUN_AS_NODE='1'; & "C:\Program Files (x86)\Tencent\微信web开发
 
 ## 包体
 
-内置贴纸、图集、图标和 Logo 优先从微信云存储读取，加载失败时使用包内副本。
-更新素材时，把 `miniprogram/assets/` 下的文件按相同相对路径上传到新的版本目录，再更新 `miniprogram/config.js` 的 `ASSET_CLOUD_ROOT`。贴纸图集与坐标表应使用同一版本。
+内置贴纸、图集、界面图标和 Logo 优先从微信云存储读取，加载失败时使用包内副本。
+更新素材时，保留文件相对于 `miniprogram/assets/` 的路径。贴纸和图集的版本由 `ASSET_CLOUD_ROOT` 指定，工具图标和 Logo 的同级版本目录分别由 `ICON_ASSET_VERSION` 和 `LOGO_ASSET_VERSION` 指定。贴纸图集与坐标表应使用同一版本。
 主包上限 2 MB，包含用于离线显示的图片副本。

@@ -196,7 +196,7 @@ Page({
     ctx.lineJoin = 'round'
     ctx.lineCap = 'round'
     if (selection) {
-      ctx.fillStyle = 'rgba(23, 34, 27, 0.54)'
+      ctx.fillStyle = 'rgba(16, 16, 16, 0.54)'
       ctx.fillRect(0, 0, this.image.width, this.image.height)
       crop.tracePath(ctx, selection)
       ctx.save()
@@ -209,8 +209,8 @@ Page({
     } else {
       return
     }
-    ctx.strokeStyle = '#FFF8DF'
-    ctx.shadowColor = '#183226'
+    ctx.strokeStyle = '#FFFFFF'
+    ctx.shadowColor = '#191919'
     ctx.shadowBlur = 2
     ctx.stroke()
     ctx.shadowBlur = 0

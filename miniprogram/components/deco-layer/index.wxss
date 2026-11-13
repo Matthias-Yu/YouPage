@@ -25,7 +25,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 2rpx 4rpx rgba(80, 56, 24, 0.25));
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.25));
 }
 
 /* 胶带：半透明 + 锯齿撕口 */
@@ -41,15 +41,15 @@
   width: 100%;
   height: 100%;
   padding: 5% 5% 0;
-  background: #FFFDF6;
+  background: #FFFFFF;
   border-radius: 4rpx;
-  box-shadow: 0 4rpx 14rpx rgba(80, 56, 24, 0.22);
+  box-shadow: 0 4rpx 14rpx rgba(0, 0, 0, 0.22);
 }
 .photo-img {
   display: block;
   width: 100%;
   height: 78%;
-  background: #EBDABB;
+  background: #DEDEDE;
 }
 
 /* 选中态 */
@@ -59,7 +59,7 @@
   top: -6rpx;
   right: -6rpx;
   bottom: -6rpx;
-  border: 2rpx dashed #30533A;
+  border: 2rpx dashed #262626;
   border-radius: 8rpx;
   pointer-events: none;
 }
@@ -78,17 +78,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2rpx 8rpx rgba(43, 56, 46, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(20, 20, 20, 0.3);
 }
 .hd-del {
   left: -30rpx;
   top: -30rpx;
-  background: #C96F43;
+  background: #FFF;
+  border: 2rpx solid #141414;
 }
 .hd-rot {
   right: -30rpx;
   bottom: -30rpx;
-  background: #30533A;
+  background: #141414;
 }
 .hd-ic {
   width: 28rpx;
@@ -108,7 +109,7 @@
   width: 4rpx;
   height: 26rpx;
   border-radius: 2rpx;
-  background: #FCF0DA;
+  background: #141414;
 }
 .x::before { transform: rotate(45deg); }
 .x::after { transform: rotate(-45deg); }

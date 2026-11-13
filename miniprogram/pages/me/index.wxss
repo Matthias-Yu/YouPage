@@ -8,11 +8,11 @@
   padding: 8rpx 0 20rpx;
 }
 .brand-logo {
-  width: 152rpx;
-  height: 152rpx;
-  margin-left: -12rpx;
-  -webkit-mask-image: radial-gradient(circle closest-side, #000 76%, transparent 98%);
-  mask-image: radial-gradient(circle closest-side, #000 76%, transparent 98%);
+  width: 110rpx;
+  height: 110rpx;
+  margin: 21rpx 23rpx 21rpx 7rpx;
+  border-radius: 28rpx;
+  flex-shrink: 0;
 }
 .brand-tx {
   display: flex;
@@ -23,7 +23,7 @@
   font-weight: 900;
   letter-spacing: 8rpx;
   line-height: 1.2;
-  color: var(--green);
+  color: var(--accent);
 }
 .brand-slogan {
   font-size: 24rpx;
@@ -66,8 +66,8 @@
   padding: 34rpx 32rpx;
   overflow: hidden;
   border-radius: 20rpx;
-  background: var(--green);
-  box-shadow: 8rpx 8rpx 0 var(--green-deep);
+  background: var(--accent);
+  box-shadow: 8rpx 8rpx 0 var(--accent-deep);
 }
 .vip-main {
   flex: 1;
@@ -83,7 +83,7 @@
 .vip-s {
   margin-top: 6rpx;
   font-size: 24rpx;
-  color: var(--green-soft);
+  color: var(--accent-soft);
 }
 .vip-go {
   position: relative;
@@ -94,7 +94,7 @@
   border-radius: 30rpx;
   font-size: 24rpx;
   font-weight: 600;
-  color: var(--green);
+  color: var(--accent);
   background: var(--paper);
 }
 /* 右下角翻起的纸角，呼应图标 */
@@ -105,7 +105,7 @@
   width: 104rpx;
   height: 104rpx;
   border-radius: 50%;
-  background: var(--terra);
+  background: var(--emphasis);
   opacity: 0.9;
 }
 
@@ -128,7 +128,7 @@
   color: var(--ink);
 }
 .row-t.danger {
-  color: var(--terra);
+  color: var(--emphasis);
 }
 .row-main {
   flex: 1;
@@ -143,7 +143,7 @@
   color: var(--ink-3);
 }
 .row-s.warn {
-  color: var(--terra);
+  color: var(--emphasis);
 }
 .row-v {
   margin-right: 12rpx;

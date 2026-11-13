@@ -62,12 +62,12 @@ const WEATHERS = named('wx-', [
 ])
 
 const TAPES = [
-  { id: 'gingham', name: '绿格', css: 'background-color:#E4ECD9;background-image:linear-gradient(90deg,rgba(48,83,58,.28) 50%,transparent 50%),linear-gradient(rgba(48,83,58,.28) 50%,transparent 50%);background-size:20rpx 20rpx;' },
-  { id: 'stripe', name: '赤陶斜纹', css: 'background:repeating-linear-gradient(135deg,#C96F43,#C96F43 10rpx,#F3D3BE 10rpx,#F3D3BE 20rpx);' },
-  { id: 'dots', name: '芥末波点', css: 'background-color:#F2D58C;background-image:radial-gradient(circle,#FFF8E9 3rpx,transparent 4rpx);background-size:18rpx 18rpx;' },
-  { id: 'kraft', name: '牛皮纸', css: 'background-color:#D9C39A;background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.2),rgba(255,255,255,.2) 2rpx,transparent 2rpx,transparent 14rpx);' },
-  { id: 'forest', name: '墨绿虚线', css: 'background-color:#30533A;background-image:linear-gradient(90deg,#FCF0DA 50%,transparent 50%);background-size:24rpx 4rpx;background-repeat:repeat-x;background-position:0 50%;' },
-  { id: 'sky', name: '晴空细纹', css: 'background:repeating-linear-gradient(90deg,#CFE0E6,#CFE0E6 8rpx,#EAF2F4 8rpx,#EAF2F4 16rpx);' }
+  { id: 'gingham', name: '灰格', css: 'background-color:#EAEAEA;background-image:linear-gradient(90deg,rgba(55,55,55,.28) 50%,transparent 50%),linear-gradient(rgba(55,55,55,.28) 50%,transparent 50%);background-size:20rpx 20rpx;' },
+  { id: 'stripe', name: '石墨斜纹', css: 'background:repeating-linear-gradient(135deg,#787878,#787878 10rpx,#E4E4E4 10rpx,#E4E4E4 20rpx);' },
+  { id: 'dots', name: '银灰波点', css: 'background-color:#AFAFAF;background-image:radial-gradient(circle,#FAFAFA 3rpx,transparent 4rpx);background-size:18rpx 18rpx;' },
+  { id: 'kraft', name: '灰纸纹', css: 'background-color:#C1C1C1;background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.2),rgba(255,255,255,.2) 2rpx,transparent 2rpx,transparent 14rpx);' },
+  { id: 'forest', name: '炭黑虚线', css: 'background-color:#363636;background-image:linear-gradient(90deg,#ECECEC 50%,transparent 50%);background-size:24rpx 4rpx;background-repeat:repeat-x;background-position:0 50%;' },
+  { id: 'sky', name: '浅灰细纹', css: 'background:repeating-linear-gradient(90deg,#D1D1D1,#D1D1D1 8rpx,#F0F0F0 8rpx,#F0F0F0 16rpx);' }
 ]
 
 // 习惯打卡可选的图标
