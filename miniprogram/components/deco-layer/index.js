@@ -1,7 +1,7 @@
 // 装饰层：盖在纸页上的贴纸 / 胶带 / 照片。
 // 拖动、旋转、缩放的跟手部分在 gesture.wxs（渲染层）里完成，松手时回调 commit 落盘。
 //
-// items: [{ id, t, k, x, y, s, r }]
+// items: [{ id, t, k, x, y, s, r, ratio? }]
 //   t  's' 贴纸  't' 胶带  'p' 照片
 //   k  贴纸 key / 胶带 id / 照片本地路径
 //   x,y 中心点，单位是「纸宽」（与屏幕尺寸无关）；s 缩放；r 旋转角度
@@ -42,14 +42,18 @@ Component({
     build(items, pw) {
       if (!pw) return []
       return items.map(it => {
-        const size = it.t === 's' && catalog.isWide(it.k) ? SIZE.wide : (SIZE[it.t] || SIZE.s)
+        const cutout = it.t === 'p' && Number.isFinite(it.ratio) && it.ratio > 0
+        const size = cutout
+          ? [SIZE.p[0] * Math.min(1, it.ratio), SIZE.p[0] / Math.max(1, it.ratio)]
+          : it.t === 's' && catalog.isWide(it.k) ? SIZE.wide : (SIZE[it.t] || SIZE.s)
         const px = Math.round(it.x * pw * 10) / 10
         const py = Math.round(it.y * pw * 10) / 10
         const view = {
           id: it.id,
           t: it.t,
-          w: Math.round(size[0] * pw),
-          h: Math.round(size[1] * pw),
+          cutout,
+          w: Math.max(1, Math.round(size[0] * pw)),
+          h: Math.max(1, Math.round(size[1] * pw)),
           inv: Math.round(1000 / it.s) / 1000,
           pos: [px, py, it.s, it.r].join(','),
           tf: 'translate3d(' + px + 'px,' + py + 'px,0) rotate(' + it.r + 'deg) scale(' + it.s + ')'

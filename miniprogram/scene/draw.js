@@ -4,6 +4,7 @@
 
 const date = require('../utils/date')
 const store = require('../utils/store')
+const catalog = require('../utils/catalog')
 const atlas = require('./atlas')
 
 // 月历页的逻辑坐标：宽 1024，按 A6 比例高 1443
@@ -28,9 +29,6 @@ const C = {
 const SANS = '"PingFang SC","HarmonyOS Sans SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif'
 const NUMERALS = '"Avenir Next",Roboto,"Helvetica Neue",Arial,sans-serif'
 const EDITORIAL = 'Georgia,"Noto Serif",serif'
-
-// 每个月页眉上的小插画（取自贴纸）
-const MONTH_ART = ['wx-snow', 'heart', 'flower', 'leaf', 'wx-sunny', 'melon', 'icecream', 'plane', 'moon', 'coffee', 'book', 'gift']
 
 function begin(ctx, pw, ph, lw, lh, mirror) {
   if (mirror) ctx.setTransform(-pw / lw, 0, 0, -ph / lh, pw, ph)
@@ -236,7 +234,7 @@ function createPainter() {
     const cell = atlasImg && atlas.map[key]
     if (!cell) return
     const c = atlas.cell
-    ctx.drawImage(atlasImg, cell[0] * c, cell[1] * c, c * cell[2], c, x, y, size * cell[2], size)
+    ctx.drawImage(atlasImg, cell[0] * c, cell[1] * c, c, c, x, y, size, size)
   }
 
   return {
@@ -275,9 +273,9 @@ function createPainter() {
       ctx.font = '400 31px ' + SANS
       ctx.fillText(y + ' · ' + date.MONTH_CN[m - 1], 333, 219)
       ctx.save()
-      ctx.translate(888, 159)
-      ctx.rotate(0.10)
-      sticker(ctx, MONTH_ART[m - 1], -78, -78, 156)
+      roundRect(ctx, 769, 48, 220, 220, 14)
+      ctx.clip()
+      sticker(ctx, 'month-' + date.pad(m), 761, 40, 236)
       ctx.restore()
 
       // 星期
@@ -345,7 +343,7 @@ function createPainter() {
           ctx.font = '400 20px ' + SANS
           ctx.fillText(fest.slice(0, 3), c.x + 60, c.y + 38)
         }
-        if (sum && sum.mood) sticker(ctx, 'mood-' + sum.mood, c.x + c.w - 56, c.y + 3, 54)
+        if (sum && sum.mood) sticker(ctx, catalog.stickerKey('mood-' + sum.mood), c.x + c.w - 56, c.y + 3, 54)
         const writing = !!draft && draft.d === c.d
         const text = writing ? draft.text : (sum ? sum.snip : '')
         const box = textBox(c)

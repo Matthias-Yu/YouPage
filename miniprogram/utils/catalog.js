@@ -1,32 +1,65 @@
-// 素材目录：贴纸包、心情、天气、胶带
-// 贴纸图由 tools/gen-assets.ps1 从 tools/art.json 生成到 /assets/stickers
-
+// 素材目录：猫猫贴纸、拼贴、心情、天气和胶带
 const BASE = '/assets/stickers/'
+const DEFAULT_STICKER = 's19'
 
-function src(key) {
-  return BASE + key + '.svg'
+// 老备份和已贴出的贴纸保留原 key，显示时换成相近的原站图案。
+const LEGACY_STICKERS = {
+  'wx-sunny': 's37', 'wx-cloudy': 's38', 'wx-overcast': 's39',
+  'wx-rain': 's40', 'wx-snow': 's43', 'wx-wind': 's44',
+  'mood-happy': 's19', 'mood-calm': 'ins04', 'mood-meh': 's49',
+  'mood-sad': 's46', 'mood-angry': 's47', 'mood-tired': 's20',
+  moon: 's50', star: 'ins32', heart: 'ins14', flower: 's12', leaf: 's26',
+  coffee: 's28', book: 'ins05', seal: 's01', sparkle: 's54',
+  flag: 's16', pin: 's04', clock: 's01', calendar: 's05', bulb: 's52',
+  pencil: 's03', mail: 's06', coin: 's06', gift: 's18', cake: 's31',
+  plane: 's04', dumbbell: 's21', milktea: 's29', donut: 'ins12',
+  rice: 's35', apple: 's34', melon: 's34', icecream: 'ins16',
+  beer: 's33', hotpot: 's30', egg: 's36',
+  'w-today': 's01', 'w-go': 's21', 'w-ddl': 's05', 'w-fish': 's07',
+  'w-rest': 's09', 'w-pay': 's06', 'w-sleep': 's50', 'w-done': 's08'
 }
 
-function named(prefix, list) {
-  return list.map(([id, name]) => ({ id, name, key: prefix + id, src: src(prefix + id) }))
+function stickerRange(prefix, first, last) {
+  return Array.from({ length: last - first + 1 }, (_, i) => prefix + String(first + i).padStart(2, '0'))
 }
-
-const MOODS = named('mood-', [
-  ['happy', '开心'], ['calm', '平静'], ['meh', '一般'], ['sad', '低落'], ['angry', '生气'], ['tired', '疲惫']
-])
-
-const WEATHERS = named('wx-', [
-  ['sunny', '晴'], ['cloudy', '多云'], ['overcast', '阴'], ['rain', '雨'], ['snow', '雪'], ['wind', '风']
-])
 
 // vip: 会员贴纸包（内测期间限免，见 utils/member.js）
 const PACKS = [
-  { id: 'daily', name: '日常', vip: false, keys: ['wx-sunny', 'wx-cloudy', 'wx-rain', 'moon', 'star', 'heart', 'flower', 'leaf', 'coffee', 'book', 'seal', 'sparkle'] },
-  { id: 'mood', name: '心情', vip: false, keys: MOODS.map(m => m.key) },
-  { id: 'plan', name: '计划', vip: false, keys: ['flag', 'pin', 'clock', 'calendar', 'bulb', 'pencil', 'mail', 'coin', 'gift', 'cake', 'plane', 'dumbbell'] },
-  { id: 'food', name: '吃喝', vip: true, keys: ['milktea', 'donut', 'rice', 'apple', 'melon', 'icecream', 'beer', 'hotpot', 'egg'] },
-  { id: 'word', name: '字签', vip: true, keys: ['w-today', 'w-go', 'w-ddl', 'w-fish', 'w-rest', 'w-pay', 'w-sleep', 'w-done'] }
+  { id: 'plan', name: '日常', vip: false, keys: stickerRange('s', 1, 9).concat(stickerRange('s', 21, 27)) },
+  { id: 'holiday', name: '节日', vip: false, keys: stickerRange('s', 10, 18) },
+  { id: 'mood', name: '心情', vip: false, keys: ['s19', 's20'].concat(stickerRange('s', 46, 54)) },
+  { id: 'weather', name: '天气', vip: false, keys: stickerRange('s', 37, 45) },
+  { id: 'food', name: '吃喝', vip: true, keys: stickerRange('s', 28, 36) },
+  { id: 'collage', name: '拼贴', vip: true, keys: stickerRange('ins', 1, 36) }
 ]
+const STICKER_KEYS = new Set(PACKS.reduce((keys, pack) => keys.concat(pack.keys), []))
+
+function stickerKey(key) {
+  if (STICKER_KEYS.has(key)) return key
+  return Object.prototype.hasOwnProperty.call(LEGACY_STICKERS, key)
+    ? LEGACY_STICKERS[key] : DEFAULT_STICKER
+}
+
+function src(key) {
+  return BASE + stickerKey(key) + '.png'
+}
+
+function named(prefix, list) {
+  return list.map(([id, name]) => {
+    const key = stickerKey(prefix + id)
+    return { id, name, key, src: src(key) }
+  })
+}
+
+const MOODS = named('mood-', [
+  ['happy', '开心'], ['calm', '平静'], ['meh', '一般'],
+  ['sad', '低落'], ['angry', '生气'], ['tired', '疲惫']
+])
+
+const WEATHERS = named('wx-', [
+  ['sunny', '晴'], ['cloudy', '多云'], ['overcast', '阴'],
+  ['rain', '雨'], ['snow', '雪'], ['wind', '风']
+])
 
 const TAPES = [
   { id: 'gingham', name: '绿格', css: 'background-color:#E4ECD9;background-image:linear-gradient(90deg,rgba(48,83,58,.28) 50%,transparent 50%),linear-gradient(rgba(48,83,58,.28) 50%,transparent 50%);background-size:20rpx 20rpx;' },
@@ -38,7 +71,7 @@ const TAPES = [
 ]
 
 // 习惯打卡可选的图标
-const HABIT_ICONS = ['wx-sunny', 'coffee', 'book', 'dumbbell', 'moon', 'pencil', 'leaf', 'heart', 'apple', 'coin']
+const HABIT_ICONS = ['s37', 's28', 'ins05', 's21', 's50', 's03', 's26', 's48', 's34', 's06', 's01']
 
 function byId(list, id) {
   for (let i = 0; i < list.length; i++) if (list[i].id === id) return list[i]
@@ -60,9 +93,9 @@ function tapeCss(id) {
   return t ? t.css : TAPES[0].css
 }
 
-// 字签贴纸是 2:1 的横向贴纸
+// 老字签保留原来的横向占位。
 function isWide(key) {
-  return key.indexOf('w-') === 0
+  return typeof key === 'string' && key.indexOf('w-') === 0
 }
 
-module.exports = { MOODS, WEATHERS, PACKS, TAPES, HABIT_ICONS, src, moodSrc, weatherSrc, tapeCss, isWide }
+module.exports = { MOODS, WEATHERS, PACKS, TAPES, HABIT_ICONS, src, stickerKey, moodSrc, weatherSrc, tapeCss, isWide }

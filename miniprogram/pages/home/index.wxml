@@ -67,6 +67,11 @@
           <view wx:else class="tray-tape" style="{{item.css}}"></view>
         </view>
       </view>
+      <view wx:if="{{trayPages > 1}}" class="tray-pager">
+        <view class="tray-arrow {{trayPage === 0 ? 'muted' : ''}}" data-n="-1" bindtap="shiftTray" role="button" aria-label="上一页贴纸" aria-disabled="{{trayPage === 0}}"><view class="chev l"></view></view>
+        <text>{{trayPage + 1}} / {{trayPages}}</text>
+        <view class="tray-arrow {{trayPage + 1 === trayPages ? 'muted' : ''}}" data-n="1" bindtap="shiftTray" role="button" aria-label="下一页贴纸" aria-disabled="{{trayPage + 1 === trayPages}}"><view class="chev r"></view></view>
+      </view>
     </view>
 
     <view class="month-rail">

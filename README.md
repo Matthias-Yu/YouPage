@@ -31,10 +31,11 @@ miniprogram/
   utils/sync.js            云同步
   config.js                云开发环境 ID、同步云函数名
 cloudfunctions/youpageSync 云同步的云函数
-  assets/                  图标、贴纸 SVG、贴纸图集 atlas.png（生成物）
+  assets/                  图标、贴纸 PNG、贴纸图集 atlas.png（生成物）
 tools/
-  art.json                 贴纸与图标的 SVG 源
-  gen-assets.ps1           从 art.json 生成 SVG 和 3D 用的贴纸图集
+  art.json                 界面图标的 SVG 源
+  gen-assets.ps1           从 art.json 生成界面图标
+  gen-sticker-atlas.py     打包 3D 用的贴纸和月份插画
   check.js                 逻辑自测
   auto.ps1                 开发者工具自动化（点击、截图）
 design/logo-640.png        图标原图
@@ -56,13 +57,16 @@ design/logo-640.png        图标原图
 
 ## 改贴纸
 
-编辑 `tools/art.json`，然后运行（需要本机有 Microsoft Edge，用来把 SVG 渲染成图集）：
+贴纸和月份插画来自 [动物也上班的电子手帐本](https://github.com/xianxie6/animals-planner-2027)。
+小程序的贴纸放在 `miniprogram/assets/stickers`，月份插画的源图放在 `tools/month-art`。
+更新图片后用已安装 Pillow 的 Python 重建图集。
 
-```
-powershell -ExecutionPolicy Bypass -File tools\gen-assets.ps1
+```sh
+python3 tools/gen-sticker-atlas.py
 ```
 
 新贴纸还要在 `miniprogram/utils/catalog.js` 的 `PACKS` 里登记才会出现在贴纸条里。
+旧记录的贴纸 ID 在显示时映射到对应新图。
 
 ## 自测
 
@@ -133,5 +137,5 @@ $env:ELECTRON_RUN_AS_NODE='1'; & "C:\Program Files (x86)\Tencent\微信web开发
 
 ## 包体
 
-主包上限 2 MB，目前约 1.7 MB，其中 three.js 约 0.6 MB、贴纸图集约 0.8 MB。
+主包上限 2 MB，其中 three.js 约 0.6 MB，贴纸图集约 0.4 MB。
 再加素材之前，先考虑把图集放到云存储或分包。

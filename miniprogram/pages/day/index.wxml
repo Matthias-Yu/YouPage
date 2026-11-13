@@ -9,11 +9,11 @@
       </view>
       <view class="stamps">
         <view class="stamp {{moodSrc ? 'filled' : ''}}" data-sheet="mood" catchtap="openSheet">
-          <image wx:if="{{moodSrc}}" class="stamp-img" src="{{moodSrc}}" />
+          <image wx:if="{{moodSrc}}" class="stamp-img" src="{{moodSrc}}" mode="aspectFit" />
           <text wx:else class="stamp-ph">心情</text>
         </view>
         <view class="stamp {{weatherSrc ? 'filled' : ''}}" data-sheet="weather" catchtap="openSheet">
-          <image wx:if="{{weatherSrc}}" class="stamp-img" src="{{weatherSrc}}" />
+          <image wx:if="{{weatherSrc}}" class="stamp-img" src="{{weatherSrc}}" mode="aspectFit" />
           <text wx:else class="stamp-ph">天气</text>
         </view>
       </view>
@@ -104,7 +104,7 @@
         data-id="{{item.id}}"
         bindtap="pickStamp"
       >
-        <image class="opt-img" src="{{item.src}}" />
+        <image class="opt-img" src="{{item.src}}" mode="aspectFit" />
         <text class="opt-tx">{{item.name}}</text>
       </view>
     </view>

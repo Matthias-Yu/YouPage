@@ -305,16 +305,19 @@ page {
 /* 贴纸抽屉 */
 .packs {
   display: flex;
+  justify-content: space-between;
   margin-bottom: 16rpx;
 }
 .pack {
   position: relative;
-  margin-right: 12rpx;
-  padding: 0 26rpx;
+  flex: 1;
+  min-width: 0;
+  margin: 0 4rpx;
   height: 60rpx;
   line-height: 60rpx;
   border-radius: 30rpx;
-  font-size: 26rpx;
+  text-align: center;
+  font-size: 24rpx;
   color: var(--ink-2);
 }
 .pack.on {
@@ -323,7 +326,7 @@ page {
 }
 .pack-tag {
   position: absolute;
-  right: -8rpx;
+  right: 0;
   top: -12rpx;
 }
 .grid-scroll {

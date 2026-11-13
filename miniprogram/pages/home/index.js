@@ -12,7 +12,8 @@ const { Planner } = require('../../scene/planner')
 
 const TAPE_PACK = { id: 'tape', name: '胶带', vip: false }
 const DOCK_H = 118  // 翻月栏和底部菜单
-const TRAY_H = 137  // 贴纸夹
+const TRAY_H = 164  // 贴纸夹（含翻页）
+const STICKERS_PER_PAGE = 12
 const CONSENT_H = 218 // 第一次打开时的同意卡片
 const INK_H = 54     // 写字时输入栏的高度
 const LIFT = 44      // 拖贴纸时，贴纸悬在手指上方多少 px
@@ -32,6 +33,8 @@ Page({
     tray: false,
     packs: catalog.PACKS.map(p => ({ id: p.id, name: p.name, vip: p.vip })).concat(TAPE_PACK),
     packIdx: 0,
+    trayPage: 0,
+    trayPages: 1,
     items: [],
     ink: null,
     kb: 0,
@@ -59,7 +62,7 @@ Page({
       navTop, topH, safeBottom, consentAsk, panelH,
       glH: this.winH - topH - panelH,
       y: t.y, m: t.m,
-      items: this.packItems(0)
+      ...this.packPage(0, 0)
     })
     // 云端有新内容拉下来了：重画纸页
     this.offSync = sync.subscribe(type => {
@@ -225,10 +228,19 @@ Page({
 
   /* ---------- 贴纸条 ---------- */
 
-  packItems(i) {
+  packPage(i, page) {
     const pack = this.data.packs[i]
-    if (pack.id === 'tape') return catalog.TAPES.map(t => ({ t: 't', k: t.id, css: t.css, wide: true }))
-    return catalog.PACKS[i].keys.map(k => ({ t: 's', k, src: catalog.src(k), wide: catalog.isWide(k) }))
+    if (pack.id === 'tape') {
+      const items = catalog.TAPES.map(t => ({ t: 't', k: t.id, css: t.css, wide: true }))
+      return { trayPage: 0, trayPages: 1, items }
+    }
+    const keys = catalog.PACKS[i].keys
+    const trayPages = Math.ceil(keys.length / STICKERS_PER_PAGE)
+    const trayPage = Math.max(0, Math.min(page, trayPages - 1))
+    const start = trayPage * STICKERS_PER_PAGE
+    const items = keys.slice(start, start + STICKERS_PER_PAGE)
+      .map(k => ({ t: 's', k, src: catalog.src(k) }))
+    return { trayPage, trayPages, items }
   },
 
   toggleTray() {
@@ -242,8 +254,13 @@ Page({
   },
 
   switchPack(e) {
-    const i = e.currentTarget.dataset.i
-    this.setData({ packIdx: i, items: this.packItems(i) })
+    const packIdx = Number(e.currentTarget.dataset.i)
+    this.setData({ packIdx, ...this.packPage(packIdx, 0) })
+  },
+
+  shiftTray(e) {
+    const page = this.data.trayPage + Number(e.currentTarget.dataset.n)
+    this.setData(this.packPage(this.data.packIdx, page))
   },
 
   // 按住贴纸条里的一张往上拖：手指进到画布范围后，场景里有一张悬着的贴纸跟着走

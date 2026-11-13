@@ -850,12 +850,13 @@ class Planner {
     if (st.t === 't') {
       mesh = new THREE.Mesh(this.tapeGeometry(), this.tapeMaterial(st.k))
     } else {
-      const cell = atlas.map[st.k] || atlas.map.star
-      const wide = cell[2] === 2
-      const geo = new THREE.PlaneBufferGeometry(wide ? 3.2 : 2.1, wide ? 1.6 : 2.1)
-      const c = atlas.cell / atlas.size
-      const u0 = cell[0] * c, u1 = (cell[0] + cell[2]) * c
-      const v1 = 1 - cell[1] * c, v0 = v1 - c
+      const cell = atlas.map[catalog.stickerKey(st.k)]
+      // 老字签以原本的高度贴入方形插画，避免把图案横向拉长。
+      const size = catalog.isWide(st.k) ? 1.6 : 2.1
+      const geo = new THREE.PlaneBufferGeometry(size, size)
+      const du = atlas.cell / atlas.width, dv = atlas.cell / atlas.height
+      const u0 = cell[0] * du, u1 = u0 + du
+      const v1 = 1 - cell[1] * dv, v0 = v1 - dv
       const uv = geo.attributes.uv
       uv.setXY(0, u0, v1)
       uv.setXY(1, u1, v1)
