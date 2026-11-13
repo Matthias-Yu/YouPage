@@ -5,6 +5,8 @@
 const date = require('../utils/date')
 const store = require('../utils/store')
 const catalog = require('../utils/catalog')
+const assets = require('../utils/assets')
+const { InkLayer } = require('./ink')
 const atlas = require('./atlas')
 
 // 月历页的逻辑坐标：宽 1024，按 A6 比例高 1443
@@ -229,6 +231,7 @@ function createPainter() {
     return canvases[k]
   }
   let atlasImg = null
+  let inkLayer = null
 
   function sticker(ctx, key, x, y, size) {
     const cell = atlasImg && atlas.map[key]
@@ -241,16 +244,14 @@ function createPainter() {
     // 贴纸图集加载好之后，月历页上的心情章和插画才画得出来
     loadAtlas(done) {
       const img = scratch(1024, 2048).canvas.createImage()
-      img.onload = () => {
+      assets.loadAtlasImage(img, () => {
         atlasImg = img
         done()
-      }
-      img.onerror = e => console.error('[draw] atlas load failed', e)
-      img.src = '/assets/atlas.png'
+      }, e => console.error('[draw] atlas load failed', e))
     },
 
     // draft: { d, text } 表示正在写这一天的格子，直接把输入中的文字画上去
-    month(y, m, weekStart, draft) {
+    month(y, m, weekStart, draft, lines) {
       const PW = 1024, PH = 2048
       const { ctx } = scratch(PW, PH)
       begin(ctx, PW, PH, LW, LH)
@@ -372,6 +373,11 @@ function createPainter() {
       ctx.font = '400 22px ' + SANS
       ctx.textAlign = 'left'
       ctx.fillText('有页', GRID.x, 1418)
+      if (lines && lines.length) {
+        if (!inkLayer) inkLayer = new InkLayer(LW, LH)
+        inkLayer.paint(lines)
+        ctx.drawImage(inkLayer.canvas, 0, 0, LW, LH)
+      }
       return pixels(ctx, PW, PH)
     },
 

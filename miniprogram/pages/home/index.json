@@ -1,5 +1,5 @@
 {
   "navigationStyle": "custom",
   "disableScroll": true,
-  "usingComponents": {}
+  "usingComponents": { "asset-image": "/components/asset-image/index" }
 }

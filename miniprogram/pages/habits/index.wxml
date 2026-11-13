@@ -13,7 +13,7 @@
 
   <view wx:for="{{habits}}" wx:key="id" class="paper card" data-id="{{item.id}}" bindlongpress="onMore">
     <view class="card-hd">
-      <image class="h-ic" src="{{item.src}}" mode="aspectFit" />
+      <asset-image image-class="h-ic" src="{{item.src}}" mode="aspectFit" />
       <view class="h-info">
         <text class="h-name">{{item.name}}</text>
         <text class="h-meta">本月 {{item.count}} 天<text wx:if="{{item.streak > 1}}"> · 连续 {{item.streak}} 天</text></text>
@@ -37,7 +37,7 @@
   </view>
 
   <view wx:if="{{!habits.length}}" class="empty">
-    <image class="empty-img" src="{{emptySrc}}" mode="aspectFit" />
+    <asset-image image-class="empty-img" src="{{emptySrc}}" mode="aspectFit" />
     <text class="empty-t serif">还没有集章卡</text>
     <text class="empty-s">挑一件想坚持的小事，比如每天喝够水。</text>
   </view>
@@ -54,7 +54,7 @@
   <view class="sheet-bar"></view>
   <view class="sheet-title">新的集章卡</view>
   <view class="field">
-    <image class="field-ic" src="{{iconSrc}}" mode="aspectFit" />
+    <asset-image image-class="field-ic" src="{{iconSrc}}" mode="aspectFit" />
     <input class="field-in" value="{{name}}" placeholder="想坚持的事" placeholder-class="ph" maxlength="12" bindinput="onName" />
   </view>
   <view class="presets">
@@ -62,7 +62,7 @@
   </view>
   <view class="icons">
     <view wx:for="{{icons}}" wx:key="k" class="icon {{icon === item.k ? 'on' : ''}}" data-k="{{item.k}}" bindtap="pickIcon">
-      <image class="icon-img" src="{{item.src}}" mode="aspectFit" />
+      <asset-image image-class="icon-img" src="{{item.src}}" mode="aspectFit" />
     </view>
   </view>
   <view class="btn" bindtap="create">开一张卡</view>

@@ -176,6 +176,21 @@ const day = (plan, extra) => Object.assign({ plan, mood: '', weather: '', todos:
     ok(s.stats().pages === 1, 'B index rebuilt (stats count the page)')
   })
 
+  console.log('== calendar drawing sync and removal')
+  const ink = [
+    { tool: 'marker', color: '#D6A33E', width: 30, points: [80, 90, 350, 90] },
+    { tool: 'eraser', color: '#2C513F', width: 36, points: [220, 70, 220, 110] }
+  ]
+  await A.do(s => s.saveMonthInk('2026-11', ink))
+  await A.syncNow()
+  await B.syncNow()
+  await B.do(s => ok(JSON.stringify(s.getMonthInk('2026-11')) === JSON.stringify(ink) &&
+    s.getMonthDeco('2026-11').length === 1, 'B got the ordered strokes and the existing sticker'))
+  await B.do(s => s.saveMonthInk('2026-11', []))
+  await B.syncNow()
+  await A.syncNow()
+  await A.do(s => ok(s.getMonthInk('2026-11').length === 0, 'undoing all strokes syncs the empty drawing'))
+
   console.log('== both edit different days of the same month')
   await A.do(s => s.saveDay('2026-11-13', day('A 写的')))
   await B.do(s => s.saveDay('2026-11-14', day('B 写的')))

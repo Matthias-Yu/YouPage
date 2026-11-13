@@ -17,11 +17,13 @@
 
 const { createScopedThreejs } = require('../libs/threejs-miniprogram')
 const draw = require('./draw')
+const { InkLayer } = require('./ink')
 const atlas = require('./atlas')
 const date = require('../utils/date')
 const store = require('../utils/store')
 const catalog = require('../utils/catalog')
 const sound = require('../utils/sound')
+const assets = require('../utils/assets')
 
 const W = 10.5, H = 14.8            // A6 纸页
 const DESK = 0xE9EBE4
@@ -116,6 +118,7 @@ class Planner {
     this.frame(false)
 
     this.painter.loadAtlas(() => {
+      if (this.disposed) return
       // 图集到了：重画月历页（心情章、插画）
       this.drawMonth(this.texTop)
       this.dirty = true
@@ -153,14 +156,13 @@ class Planner {
     this.stickerMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
     this.stickerMat.visible = false
     const img = this.canvas.createImage()
-    img.onload = () => {
+    assets.loadAtlasImage(img, () => {
+      if (this.disposed) return
       tex.image = img
       tex.needsUpdate = true
       this.stickerMat.visible = true
       this.dirty = true
-    }
-    img.onerror = e => console.error('[planner] atlas texture failed', e)
-    img.src = '/assets/atlas.png'
+    }, e => console.error('[planner] atlas texture failed', e))
   }
 
   // 某种胶带花色的贴图：tile 可横向平铺；top 是胶带卷的顶面
@@ -662,7 +664,9 @@ class Planner {
   // 把某个月画进贴图，返回这个月的格子布局
   paint(tex, y, m, draft) {
     const weekStart = store.getSettings().weekStart
-    tex.image = this.painter.month(y, m, weekStart, draft)
+    const preview = this.drawing && this.inkMesh.visible && tex === this.texTop && y === this.state.y && m === this.state.m
+    const lines = preview ? [] : store.getMonthInk(date.ym(y, m))
+    tex.image = this.painter.month(y, m, weekStart, draft, lines)
     tex.needsUpdate = true
     this.dirty = true
     return draw.layout(y, m, weekStart)
@@ -684,6 +688,68 @@ class Planner {
     if (this.flip) return
     this.drawMonth(this.texTop)
     this.loadStickers()
+    this.inkDirty = true
+  }
+
+  setDrawing(on) {
+    this.drawing = on
+    if (on && !this.inkMesh) {
+      const THREE = this.THREE
+      this.inkLayer = new InkLayer(draw.LW, draw.LH)
+      this.inkPreview = new InkLayer(draw.LW, draw.LH)
+      // 2D 画布的像素从上往下，WebGL 的 UV 从下往上。
+      this.inkTex = new THREE.DataTexture(null, 1, 1, THREE.RGBAFormat)
+      this.inkTex.flipY = true
+      this.inkTex.minFilter = this.inkTex.magFilter = THREE.LinearFilter
+      this.inkTex.generateMipmaps = false
+      this.inkMesh = new THREE.Mesh(this.pageMesh.geometry,
+        new THREE.MeshLambertMaterial({ map: this.inkTex, transparent: true, depthWrite: false }))
+      this.inkMesh.position.copy(this.pageMesh.position)
+      this.inkMesh.position.z += 0.005
+      this.inkMesh.renderOrder = 9
+      this.inkMesh.receiveShadow = true
+      this.pageMesh.parent.add(this.inkMesh)
+    }
+    if (!this.inkMesh) return
+    this.previewInk(null)
+    this.inkMesh.visible = on && !this.flip
+    if (!this.flip) this.drawMonth(this.texTop)
+  }
+
+  previewInk(line) {
+    this.inkLine = line
+    this.inkDirty = true
+  }
+
+  drawInkPreview() {
+    const saved = store.getMonthInk(date.ym(this.state.y, this.state.m))
+    if (this.inkSaved !== saved) {
+      this.inkSaved = saved
+      this.inkLayer.paint(saved)
+    }
+    const layer = this.inkLine ? this.inkPreview : this.inkLayer
+    if (this.inkLine) layer.preview(this.inkLayer, this.inkLine)
+    this.inkTex.image = layer.pixels()
+    this.inkTex.needsUpdate = true
+    this.inkDirty = false
+    this.dirty = true
+  }
+
+  inkPoint(x, y, clampToPage) {
+    if (!this.canStick() || this.state.focus) return null
+    this.camera.updateMatrixWorld()
+    const p = this.pagePoint(x, y, this.pageMesh.position.z)
+    if (!p || (!clampToPage && !this.onPage(p, 0))) return null
+    return [Math.round(clamp(p.x / W, 0, 1) * draw.LW), Math.round(clamp(0.5 - p.y / H, 0, 1) * draw.LH)]
+  }
+
+  dayAt(x, y) {
+    const point = this.inkPoint(x, y)
+    return point && this.calendarCell(point[0], point[1])
+  }
+
+  calendarCell(x, y) {
+    return this.layout.cells.find(c => c.inMonth && x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + c.h)
   }
 
   updateTabs() {
@@ -728,6 +794,10 @@ class Planner {
     const s = this.state
     if (this.flip || s.focus || !s.open || s.t < 1) return false
     to = to || date.addMonths(s.y, s.m, dir)
+    if (this.inkMesh && this.inkMesh.visible) {
+      this.inkMesh.visible = false
+      this.drawMonth(this.texTop)
+    }
     const oldTex = this.texTop, newTex = this.texSpare
     const layoutNew = this.paint(newTex, to.y, to.m, null)
     const oldMeshes = this.stickerG.children.slice()
@@ -791,6 +861,13 @@ class Planner {
       this.layout = f.layoutNew
     }
     this.pageMesh.material.map = this.texTop
+    if (this.inkMesh) {
+      this.inkMesh.visible = this.drawing
+      if (this.drawing) {
+        this.drawMonth(this.texTop)
+        this.inkDirty = true
+      }
+    }
     this.loadStickers()
     this.updateTabs()
     if (commit) this.emit('month', { y: s.y, m: s.m })
@@ -899,12 +976,12 @@ class Planner {
   }
 
   // 屏幕上一点落在纸页平面的哪里（世界坐标），落不到返回 null
-  pagePoint(x, y) {
+  pagePoint(x, y, z = PAGE_Z) {
     const rc = this.raycaster
     rc.setFromCamera({ x: (x / this.w) * 2 - 1, y: -(y / this.h) * 2 + 1 }, this.camera)
     const o = rc.ray.origin, d = rc.ray.direction
     if (Math.abs(d.z) < 1e-6) return null
-    const k = (PAGE_Z - o.z) / d.z
+    const k = (z - o.z) / d.z
     return k > 0 ? { x: o.x + d.x * k, y: o.y + d.y * k } : null
   }
 
@@ -1130,14 +1207,14 @@ class Planner {
   }
 
   // 画布大小变了（贴纸条展开、键盘弹起）
-  resize(w, h) {
+  resize(w, h, keepView) {
     if (w === this.w && h === this.h) return
     this.w = w
     this.h = h
     this.renderer.setSize(w, h, false)
     this.camera.aspect = w / h
     if (this.state.focus) this.focusCell(this.focusD, 260)
-    else this.frame(true)
+    else if (!keepView) this.frame(true)
     this.applyRig()
     this.dirty = true
   }
@@ -1169,6 +1246,31 @@ class Planner {
     if (!this.state.focus) return
     this.state.focus = false
     this.frame(true)
+  }
+
+  startCalendarZoom(touches) {
+    if (!this.canStick() || this.state.focus) return null
+    this.stopRigTween()
+    this.camera.updateMatrixWorld()
+    const [x, y] = midpoint(touches)
+    const anchor = this.pagePoint(x, y, this.pageMesh.position.z)
+    return { anchor, span: span(touches), distance: this.rig.dist }
+  }
+
+  moveCalendarZoom(zoom, touches) {
+    if (!this.canStick()) return
+    this.rig.dist = clamp(zoom.distance * zoom.span / span(touches), 12, 150)
+    this.applyRig()
+    // 缩放后，把纸上原先位于两指之间的点移回当前的两指中点。
+    this.camera.updateMatrixWorld()
+    const [x, y] = midpoint(touches)
+    const point = this.pagePoint(x, y, this.pageMesh.position.z)
+    if (zoom.anchor && point) {
+      this.rig.tx = clamp(this.rig.tx + zoom.anchor.x - point.x, 0, W)
+      this.rig.ty = clamp(this.rig.ty + zoom.anchor.y - point.y, -H / 2, H / 2)
+      this.applyRig()
+    }
+    this.dirty = true
   }
 
   /* ---------- 手势 ---------- */
@@ -1315,7 +1417,7 @@ class Planner {
     else if (hit.type === 'page') {
       const lx = hit.point.x / W * draw.LW
       const ly = (H / 2 - hit.point.y) / H * draw.LH
-      const cell = this.layout.cells.find(c => c.inMonth && lx >= c.x && lx < c.x + c.w && ly >= c.y && ly < c.y + c.h)
+      const cell = this.calendarCell(lx, ly)
       if (cell) this.emit('cell', { d: cell.d, key: cell.key })
     } else if (double) this.frame(true) // 双击桌面：视角复位
   }
@@ -1406,6 +1508,7 @@ class Planner {
       })
       this.dirty = true
     }
+    if (this.inkDirty && this.inkMesh && this.inkMesh.visible) this.drawInkPreview()
     if (this.dirty) {
       this.dirty = false
       this.renderer.render(this.scene, this.camera)
@@ -1425,8 +1528,13 @@ class Planner {
   }
 
   dispose() {
+    this.disposed = true
     this.running = false
     this.tweens = []
+    if (this.inkMesh) {
+      this.inkTex.dispose()
+      this.inkMesh.material.dispose()
+    }
     try {
       this.renderer.dispose()
     } catch (e) {}
@@ -1436,6 +1544,10 @@ class Planner {
 function span(ts) {
   const dx = ts[0].x - ts[1].x, dy = ts[0].y - ts[1].y
   return Math.sqrt(dx * dx + dy * dy) || 1
+}
+
+function midpoint(ts) {
+  return [(ts[0].x + ts[1].x) / 2, (ts[0].y + ts[1].y) / 2]
 }
 
 function angle(ts) {

@@ -1,4 +1,4 @@
 {
   "navigationBarTitleText": "打卡",
-  "usingComponents": {}
+  "usingComponents": { "asset-image": "/components/asset-image/index" }
 }

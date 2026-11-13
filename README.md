@@ -82,7 +82,7 @@ $env:ELECTRON_RUN_AS_NODE='1'; & "C:\Program Files (x86)\Tencent\微信web开发
 
 ## 云同步
 
-手帐数据（日页、月历贴纸、习惯、打卡）同步到云开发，换手机、删了小程序都能找回来。
+手帐数据（日页、月历贴纸和笔迹、习惯、打卡）同步到云开发，换手机、删了小程序都能找回来。
 设备自己的设置（音效、封面、周起始日、胶带花色）不同步。
 
 - 云函数 `cloudfunctions/youpageSync`：每个用户的每一份数据存成集合 `youpage_kv` 里的一条，
@@ -92,7 +92,7 @@ $env:ELECTRON_RUN_AS_NODE='1'; & "C:\Program Files (x86)\Tencent\微信web开发
 - 照片在推送前上传到云存储 `youpage/photos/`，日页里的地址换成云文件 ID。
 - 「我的」里可以关掉这台设备的同步，并显示上次同步时间或失败原因。
 
-当前环境：`cloud1-d1g2id4e4d7d2e2b4`（写在 `miniprogram/config.js`），`youpageSync` 已部署。
+当前环境是 `cloud1-d1g2id4e4d7d2e2b4`（写在 `miniprogram/config.js`）。上线月历绘画前需要重新部署 `youpageSync`，让云端接收笔迹记录。
 改了云函数后重新部署：右键 `cloudfunctions/youpageSync` →「上传并部署：云端安装依赖」，或者：
 
 ```
@@ -137,5 +137,6 @@ $env:ELECTRON_RUN_AS_NODE='1'; & "C:\Program Files (x86)\Tencent\微信web开发
 
 ## 包体
 
-主包上限 2 MB，其中 three.js 约 0.6 MB，贴纸图集约 0.4 MB。
-再加素材之前，先考虑把图集放到云存储或分包。
+内置贴纸、图集、图标和 Logo 优先从微信云存储读取，加载失败时使用包内副本。
+更新素材时，把 `miniprogram/assets/` 下的文件按相同相对路径上传到新的版本目录，再更新 `miniprogram/config.js` 的 `ASSET_CLOUD_ROOT`。贴纸图集与坐标表应使用同一版本。
+主包上限 2 MB，包含用于离线显示的图片副本。

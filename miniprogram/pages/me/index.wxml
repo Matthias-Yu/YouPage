@@ -1,6 +1,6 @@
 <view class="tab-page page">
   <view class="brand">
-    <image class="brand-logo" src="/assets/logo.png" />
+    <asset-image image-class="brand-logo" src="/assets/logo.png" />
     <view class="brand-tx">
       <text class="brand-name serif">有页</text>
       <text class="brand-slogan">每天，有一页。</text>

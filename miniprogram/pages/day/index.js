@@ -50,6 +50,7 @@ Page({
   },
 
   onLoad(query) {
+    this.cropOnReady = query.photo === '1'
     const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     this.winH = info.windowHeight
     // 纸页左右各留 24rpx
@@ -60,6 +61,10 @@ Page({
       packItems: this.packItems(0)
     })
     this.load(query.date || date.today().key)
+  },
+
+  onReady() {
+    if (this.cropOnReady) this.pickPhoto()
   },
 
   onShow() {

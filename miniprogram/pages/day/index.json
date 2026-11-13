@@ -2,6 +2,7 @@
   "navigationBarTitleText": "有页",
   "navigationBarBackgroundColor": "#E9EBE4",
   "usingComponents": {
+    "asset-image": "/components/asset-image/index",
     "deco-layer": "/components/deco-layer/index"
   }
 }

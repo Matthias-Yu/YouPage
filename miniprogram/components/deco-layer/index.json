@@ -1,3 +1,4 @@
 {
-  "component": true
+  "component": true,
+  "usingComponents": { "asset-image": "/components/asset-image/index" }
 }

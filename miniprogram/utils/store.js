@@ -5,9 +5,10 @@
 //                  plan 是直接写在月历格子里的那一句；t 是这一天最后修改的时间。
 //                  清空了的一天会留一个 { gone: 1, t } 标记，好让别的设备也知道它被删了，读的时候过滤掉。
 //   yp:d:2026-11   [{ id, t, k, x, y, s, r }]  贴在月历页上的贴纸 / 胶带
+//   yp:i:2026-11   [{ tool, color, width, points: [x, y, ...] }] 月历页上的手绘笔迹
 //   yp:habits      [{ id, name, icon }]
 //   yp:h:2026-11   { habitId: { '12': 1 } }
-//   ——以上四类会同步到云端——
+//   ——以上五类会同步到云端——
 //   yp:index       ['2026-11', ...]            有内容的月份（由月份数据推出来，不同步）
 //   yp:settings    { cover, weekStart, sound, tape, sync }   这台设备自己的设置（不同步）
 
@@ -16,12 +17,14 @@ const date = require('./date')
 const PREFIX = 'yp:'
 const K_MONTH = PREFIX + 'm:'
 const K_DECO = PREFIX + 'd:'
+const K_INK = PREFIX + 'i:'
+const EMPTY_INK = []
 const K_INDEX = PREFIX + 'index'
 const K_HABITS = PREFIX + 'habits'
 const K_HLOG = PREFIX + 'h:'
 const K_SETTINGS = PREFIX + 'settings'
 const BACKUP_APP = 'youpage'
-const SYNCABLE = /^yp:(m|d|h):\d{4}-\d{2}$|^yp:habits$/
+const SYNCABLE = /^yp:(m|d|i|h):\d{4}-\d{2}$|^yp:habits$/
 
 let cache = {}
 let hook = null
@@ -187,6 +190,19 @@ function saveMonthDeco(ymKey, list) {
   write(K_DECO + ymKey, list)
 }
 
+function getMonthInk(ymKey) {
+  const lines = read(K_INK + ymKey, EMPTY_INK)
+  return Array.isArray(lines) ? lines : EMPTY_INK
+}
+
+function saveMonthInk(ymKey, lines) {
+  const key = K_INK + ymKey
+  const previous = read(key)
+  if (write(key, lines)) return true
+  cache[key] = previous
+  return false
+}
+
 function stats() {
   let pages = 0, stickers = 0
   ownKeys().forEach(k => {
@@ -318,6 +334,7 @@ function clearAll() {
 
 module.exports = {
   emptyDay, getMonth, getDay, saveDay, summary, stats, getMonthDeco, saveMonthDeco,
+  getMonthInk, saveMonthInk,
   getHabits, saveHabits, getHabitLog, isHabitDone, toggleHabit, habitStreak,
   getSettings, setSetting, exportAll, importAll, clearAll,
   onLocalChange, isSyncable, peek, applyRemote, syncableKeys, rebuildIndex

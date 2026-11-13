@@ -11,7 +11,7 @@
 
   <view class="paper list">
     <view wx:for="{{benefits}}" wx:key="title" class="item">
-      <image class="item-ic" src="{{item.src}}" />
+      <asset-image image-class="item-ic" src="{{item.src}}" />
       <view class="item-tx">
         <view class="item-hd">
           <text class="item-t serif">{{item.title}}</text>

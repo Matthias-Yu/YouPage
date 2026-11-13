@@ -30,7 +30,7 @@ page {
   background: #29483A;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
-.masthead-mark image {
+.masthead-icon {
   width: 17px;
   height: 17px;
 }
@@ -62,7 +62,9 @@ page {
 }
 .month-rail,
 .dock,
-.tray {
+.tray,
+.drawing-tools,
+.ink-palette {
   max-width: 440px;
   margin-left: auto;
   margin-right: auto;
@@ -183,7 +185,7 @@ page {
   justify-content: center;
   border-radius: 10px;
 }
-.dock-icon image {
+.dock-img {
   width: 21px;
   height: 21px;
 }
@@ -196,6 +198,252 @@ page {
 }
 .control-pressed {
   background: rgba(53, 85, 66, 0.1);
+}
+
+.dock-pencil {
+  width: 16px;
+  height: 7px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px 4px 4px 2px;
+  transform: rotate(-43deg);
+  position: relative;
+}
+.dock-pencil::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -1.5px;
+  border: 3.5px solid transparent;
+  border-right: 4px solid currentColor;
+  border-left: 0;
+}
+.dock-pencil::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  height: 100%;
+  border-right: 1.5px solid currentColor;
+}
+.is-active .dock-pencil {
+  color: #FFF9E9;
+}
+
+.drawing-tools {
+  height: 93px;
+  margin-bottom: 5px;
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 17px;
+  background: linear-gradient(150deg, #FCFCF7, #EEF2E8);
+  box-shadow: 0 3px 9px rgba(41, 58, 47, 0.1);
+}
+.drawing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.drawing-primary {
+  height: 44px;
+}
+.drawing-pens,
+.drawing-actions {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-around;
+}
+.drawing-actions {
+  margin-left: auto;
+  border-left: 1px solid #DBE3D7;
+  padding-left: 3px;
+}
+.drawing-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  max-width: 44px;
+  height: 44px;
+  min-width: 0;
+  border-radius: 11px;
+}
+.drawing-glyph {
+  display: block;
+  width: 23px;
+  height: 23px;
+}
+.drawing-redo {
+  transform: scaleX(-1);
+}
+.drawing-key.chosen {
+  background: #DBE9DD;
+  box-shadow: inset 0 0 0 1px #C2D5C6;
+}
+.drawing-pressed {
+  opacity: 0.68;
+}
+.drawing-options {
+  height: 39px;
+  border-top: 1px solid #E2E9DE;
+}
+.ink-colors,
+.ink-weights {
+  display: flex;
+  align-items: center;
+}
+.ink-colors {
+  min-width: 0;
+}
+.ink-weights {
+  gap: 2px;
+}
+.swatch {
+  width: 32px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.swatch-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--swatch);
+}
+.swatch.picked .swatch-dot {
+  box-shadow: 0 0 0 1.5px #F5F7F0, 0 0 0 3px var(--swatch);
+}
+.palette-wheel {
+  width: 22px;
+  height: 22px;
+  padding: 3px;
+  border-radius: 50%;
+  background: conic-gradient(#F26863, #F6C85A, #64B97E, #53BFC3, #657FE5, #CB6AB0, #F26863);
+}
+.palette-wheel-center {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #F7F8F1;
+  border-radius: 50%;
+}
+.size-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+.size-btn.chosen {
+  background: #DBE9DD;
+}
+.weight-mark {
+  width: 17px;
+  border-radius: 4px;
+  background: #365344;
+}
+.dimmed {
+  opacity: 0.45;
+}
+
+@media (max-width: 340px) {
+  .drawing-glyph { width: 20px; height: 20px; }
+  .swatch, .size-btn { width: 26px; }
+}
+
+.ink-palette {
+  height: 228px;
+  padding: 10px 12px;
+  border: 1px solid #FFF;
+  border-radius: 17px;
+  background: #F7F8F1;
+  box-shadow: 0 3px 12px rgba(41, 58, 47, 0.13);
+}
+.palette-heading,
+.palette-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.palette-heading {
+  height: 26px;
+}
+.palette-title {
+  margin-right: auto;
+  color: #29483A;
+  font-size: 14px;
+  font-weight: 600;
+}
+.palette-preview {
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(41, 58, 47, 0.18);
+  border-radius: 50%;
+}
+.palette-hex {
+  color: #536258;
+  font-family: monospace;
+  font-size: 12px;
+}
+.palette-field {
+  position: relative;
+  height: 104px;
+  margin: 6px 8px 0;
+  border-radius: 8px;
+  background-image: linear-gradient(to top, #000, transparent), linear-gradient(to right, #FFF, transparent);
+}
+.palette-cursor {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #FFF;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.palette-hue {
+  position: relative;
+  height: 36px;
+}
+.palette-hue::before {
+  position: absolute;
+  content: '';
+  top: 13px;
+  right: 8px;
+  left: 8px;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #F00, #FF0, #0F0, #0FF, #00F, #F0F, #F00);
+  pointer-events: none;
+}
+.palette-hue slider {
+  position: relative;
+  height: 36px;
+  margin: 0 8px;
+}
+.palette-cancel,
+.palette-apply {
+  flex: 1 1 0;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border-radius: 9px;
+  line-height: 33px;
+  font-size: 13px;
+}
+.palette-cancel {
+  color: #365344;
+  background: #E7EEE3;
+}
+.palette-apply {
+  color: #FFF8E6;
+  background: #365C48;
+}
+.palette-cancel::after,
+.palette-apply::after {
+  border: 0;
 }
 
 /* 贴纸夹：分类像夹页标签，贴纸在半透明的口袋里。 */

@@ -1,0 +1,1 @@
+<image class="image-class" src="{{resolved}}" mode="{{mode}}" data-source="{{resolved}}" binderror="onImageError" />

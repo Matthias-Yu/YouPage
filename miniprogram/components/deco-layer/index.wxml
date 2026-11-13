@@ -16,7 +16,8 @@
       data-id="{{item.id}}"
       catchtap="onTapEl"
     >
-      <image wx:if="{{item.t === 's' || item.cutout}}" class="art" src="{{item.src}}" mode="aspectFit" />
+      <asset-image wx:if="{{item.t === 's'}}" image-class="art" src="{{item.src}}" mode="aspectFit" />
+      <image wx:elif="{{item.cutout}}" class="art" src="{{item.src}}" mode="aspectFit" />
       <view wx:elif="{{item.t === 't'}}" class="tape" style="{{item.css}}"></view>
       <view wx:else class="photo">
         <image class="photo-img" src="{{item.src}}" mode="aspectFill" />
@@ -48,7 +49,7 @@
           catchtouchend="{{g.rotEnd}}"
           catchtouchcancel="{{g.rotEnd}}"
         >
-          <image class="hd-ic" src="/assets/icons/rotate-light.svg" />
+          <asset-image image-class="hd-ic" src="/assets/icons/rotate-light.svg" />
         </view>
       </block>
     </view>

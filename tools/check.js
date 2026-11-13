@@ -26,7 +26,7 @@ for (const f of files.filter(f => /\.json$/.test(f))) {
 console.log('  checked ' + files.filter(f => /\.(js|wxs|json)$/.test(f)).length + ' files')
 
 console.log('== wxml: tags balanced, handlers exist, assets exist')
-const VOID = new Set(['image', 'input', 'textarea', 'import', 'include', 'wxs', 'switch', 'deco-layer'])
+const VOID = new Set(['image', 'asset-image', 'input', 'textarea', 'import', 'include', 'wxs', 'switch', 'deco-layer'])
 for (const f of files.filter(f => /\.wxml$/.test(f))) {
   const src = fs.readFileSync(f, 'utf8').replace(/<!--[\s\S]*?-->/g, '')
   const stack = []

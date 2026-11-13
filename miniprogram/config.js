@@ -2,6 +2,8 @@ module.exports = {
   // 云开发环境 ID（微信开发者工具 → 云开发 → 设置 里能看到，形如 cloud1-xxxx）。
   // 留空时使用这个小程序的默认环境（最早创建的那个）。换环境时，云函数 youpageSync 也要部署到新环境。
   CLOUD_ENV: 'cloud1-d1g2id4e4d7d2e2b4',
+  // 内置素材的版本目录，发布新素材时与云存储文件一起更新。
+  ASSET_CLOUD_ROOT: 'cloud://cloud1-d1g2id4e4d7d2e2b4.636c-cloud1-d1g2id4e4d7d2e2b4-1531148926/youpage/assets/22e047f/',
   // 同步用的云函数，代码在 cloudfunctions/youpageSync
   SYNC_FUNCTION: 'youpageSync',
   // 照片上传到云存储的目录

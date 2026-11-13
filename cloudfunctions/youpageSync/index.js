@@ -26,7 +26,7 @@ const PAGE = 100            // 单次查询条数
 const PAGE_OUT = 300        // 单次 pull 最多返回多少条
 const MAX_PUSH = 20         // 单次 push 最多多少条
 const MAX_JSON = 900 * 1024 // 单条数据上限（字符数）
-const KEY_RE = /^yp:(m|d|h):\d{4}-\d{2}$|^yp:habits$/
+const KEY_RE = /^yp:(m|d|i|h):\d{4}-\d{2}$|^yp:habits$/
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
