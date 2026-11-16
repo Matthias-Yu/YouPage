@@ -1,12 +1,12 @@
 <view class="tab-page page">
   <view class="hd">
     <view class="hd-l">
-      <text class="h1 serif">集章卡</text>
+      <text class="h1">集章卡</text>
       <text class="h-sub">做到了，就盖一个章。</text>
     </view>
     <view class="mon">
       <view class="round-btn" data-n="-1" bindtap="shiftMonth"><view class="chev l"></view></view>
-      <text class="mon-t serif">{{y}}.{{mm}}</text>
+      <text class="mon-t">{{y}}.{{mm}}</text>
       <view class="round-btn" data-n="1" bindtap="shiftMonth"><view class="chev r"></view></view>
     </view>
   </view>
@@ -38,7 +38,7 @@
 
   <view wx:if="{{!habits.length}}" class="empty">
     <asset-image image-class="empty-img" src="{{emptySrc}}" mode="aspectFit" />
-    <text class="empty-t serif">还没有集章卡</text>
+    <text class="empty-t">还没有集章卡</text>
     <text class="empty-s">挑一件想坚持的小事，比如每天喝够水。</text>
   </view>
 

@@ -1,6 +1,6 @@
 {
   "navigationBarTitleText": "有页会员",
-  "navigationBarBackgroundColor": "#262626",
-  "navigationBarTextStyle": "white",
+  "navigationBarBackgroundColor": "#EBEBEB",
+  "navigationBarTextStyle": "black",
   "usingComponents": { "asset-image": "/components/asset-image/index" }
 }

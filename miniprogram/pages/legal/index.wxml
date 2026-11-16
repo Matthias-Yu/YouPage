@@ -1,11 +1,11 @@
 <view class="wrap">
   <view class="paper doc">
-    <text class="title serif">{{doc.title}}</text>
+    <text class="title">{{doc.title}}</text>
     <text class="date">更新日期：{{doc.updated}}</text>
     <text wx:for="{{doc.intro}}" wx:key="*this" class="p" user-select>{{item}}</text>
 
     <view wx:for="{{doc.sections}}" wx:key="h" class="sec">
-      <text class="h serif">{{item.h}}</text>
+      <text class="h">{{item.h}}</text>
       <text wx:for="{{item.p}}" wx:for-item="line" wx:key="*this" class="p" user-select>{{line}}</text>
     </view>
 

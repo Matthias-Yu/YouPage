@@ -5,13 +5,13 @@
 .brand {
   display: flex;
   align-items: center;
-  padding: 8rpx 0 20rpx;
+  padding: 24rpx 8rpx 28rpx;
 }
 .brand-logo {
-  width: 110rpx;
-  height: 110rpx;
-  margin: 21rpx 23rpx 21rpx 7rpx;
-  border-radius: 28rpx;
+  width: 76rpx;
+  height: 76rpx;
+  margin-right: 16rpx;
+  border-radius: var(--radius-control);
   flex-shrink: 0;
 }
 .brand-tx {
@@ -19,15 +19,15 @@
   flex-direction: column;
 }
 .brand-name {
-  font-size: 56rpx;
-  font-weight: 900;
-  letter-spacing: 8rpx;
+  font-size: 38rpx;
+  font-weight: 600;
+  letter-spacing: 1.4rpx;
   line-height: 1.2;
   color: var(--accent);
 }
 .brand-slogan {
+  margin-top: 4rpx;
   font-size: 24rpx;
-  letter-spacing: 4rpx;
   color: var(--ink-2);
 }
 
@@ -46,8 +46,10 @@
   border-right: 0;
 }
 .stat-n {
-  font-size: 52rpx;
-  font-weight: 900;
+  font-family: var(--numerals);
+  font-variant-numeric: tabular-nums;
+  font-size: 48rpx;
+  font-weight: 400;
   line-height: 1.15;
   color: var(--ink);
 }
@@ -59,54 +61,39 @@
 
 /* 会员卡 */
 .vip {
-  position: relative;
   display: flex;
   align-items: center;
   margin-top: 24rpx;
-  padding: 34rpx 32rpx;
-  overflow: hidden;
-  border-radius: 20rpx;
-  background: var(--accent);
-  box-shadow: 8rpx 8rpx 0 var(--accent-deep);
+  padding: 28rpx;
 }
 .vip-main {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 .vip-t {
-  font-size: 36rpx;
-  font-weight: 900;
-  letter-spacing: 4rpx;
-  color: var(--paper);
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--ink);
 }
 .vip-s {
   margin-top: 6rpx;
   font-size: 24rpx;
-  color: var(--accent-soft);
+  line-height: 36rpx;
+  color: var(--ink-2);
 }
 .vip-go {
-  position: relative;
-  z-index: 1;
+  flex-shrink: 0;
+  margin-left: 20rpx;
   height: 60rpx;
   padding: 0 28rpx;
   line-height: 60rpx;
-  border-radius: 30rpx;
+  border-radius: var(--radius-control);
   font-size: 24rpx;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--paper);
-}
-/* 右下角翻起的纸角，呼应图标 */
-.vip-fold {
-  position: absolute;
-  right: -52rpx;
-  bottom: -52rpx;
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: 50%;
-  background: var(--emphasis);
-  opacity: 0.9;
+  font-weight: 500;
+  color: var(--paper);
+  background: var(--accent);
 }
 
 .list {

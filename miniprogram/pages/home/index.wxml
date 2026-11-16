@@ -68,7 +68,7 @@
     <view class="menu-panels">
     <view wx:if="{{tray}}" class="tray">
       <view class="tray-tabs">
-        <view wx:for="{{packs}}" wx:key="id" class="tray-tab {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">{{item.name}}</view>
+        <view wx:for="{{packs}}" wx:key="id" class="sticker-tab tray-tab {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">{{item.name}}</view>
       </view>
       <view class="tray-items">
         <view

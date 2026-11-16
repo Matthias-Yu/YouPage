@@ -18,8 +18,9 @@ page {
   --sans: "PingFang SC", "HarmonyOS Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
   --numerals: "Avenir Next", Roboto, "Helvetica Neue", Arial, sans-serif;
   --editorial: Georgia, "Noto Serif", serif;
-  --serif: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
-  --shadow: 0 6rpx 22rpx rgba(0, 0, 0, 0.13);
+  --radius-control: 10px;
+  --radius-card: 17px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 5px 14px rgba(0, 0, 0, 0.08);
 
   background: var(--desk);
   color: var(--ink);
@@ -38,14 +39,10 @@ view, text, image, input, textarea, scroll-view, button {
   padding-bottom: calc(56rpx + env(safe-area-inset-bottom));
 }
 
-.serif {
-  font-family: var(--serif);
-}
-
 /* 纸页卡片 */
 .paper {
   background: var(--paper);
-  border-radius: 20rpx;
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow);
 }
 
@@ -53,8 +50,8 @@ view, text, image, input, textarea, scroll-view, button {
 .chev {
   width: 16rpx;
   height: 16rpx;
-  border-top: 4rpx solid var(--ink-2);
-  border-right: 4rpx solid var(--ink-2);
+  border-top: 3rpx solid var(--ink-2);
+  border-right: 3rpx solid var(--ink-2);
   border-radius: 2rpx;
 }
 .chev.l { transform: rotate(-135deg); margin-left: 6rpx; }
@@ -71,16 +68,33 @@ view, text, image, input, textarea, scroll-view, button {
 }
 .round-btn:active { background: rgba(26, 26, 26, 0.1); }
 
-/* 胶囊标签 */
+/* 快捷选项 */
 .chip {
   display: inline-flex;
   align-items: center;
   height: 52rpx;
   padding: 0 24rpx;
-  border-radius: 26rpx;
+  border-radius: var(--radius-control);
   font-size: 24rpx;
   color: var(--accent);
   background: var(--accent-wash);
+}
+
+/* 首页贴纸夹与日页抽屉共用分类标签 */
+.sticker-tab {
+  flex: 1;
+  min-width: 0;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 8px 8px 0 0;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--ink-2);
+}
+.sticker-tab.on {
+  color: var(--accent);
+  font-weight: 500;
+  background: #E4E4E4;
 }
 
 /* 主按钮 */
@@ -89,9 +103,9 @@ view, text, image, input, textarea, scroll-view, button {
   align-items: center;
   justify-content: center;
   height: 88rpx;
-  border-radius: 44rpx;
-  font-size: 30rpx;
-  font-weight: 600;
+  border-radius: var(--radius-control);
+  font-size: 28rpx;
+  font-weight: 500;
   color: var(--paper);
   background: var(--accent);
 }
@@ -128,7 +142,7 @@ view, text, image, input, textarea, scroll-view, button {
   padding: 20rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
   background: var(--paper);
   border-radius: 32rpx 32rpx 0 0;
-  box-shadow: 0 -8rpx 30rpx rgba(0, 0, 0, 0.16);
+  box-shadow: 0 -4rpx 24rpx rgba(0, 0, 0, 0.1);
   transform: translateY(105%);
   transition: transform 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -144,9 +158,9 @@ view, text, image, input, textarea, scroll-view, button {
 }
 .sheet-title {
   margin-bottom: 20rpx;
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink);
 }
 

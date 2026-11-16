@@ -2,34 +2,33 @@
   <view class="brand">
     <asset-image image-class="brand-logo" src="/assets/logo.png" mode="aspectFit" />
     <view class="brand-tx">
-      <text class="brand-name serif">有页</text>
+      <text class="brand-name">有页</text>
       <text class="brand-slogan">每天，有一页。</text>
     </view>
   </view>
 
   <view class="paper stats">
     <view class="stat">
-      <text class="stat-n serif">{{stats.pages}}</text>
+      <text class="stat-n">{{stats.pages}}</text>
       <text class="stat-l">已写页数</text>
     </view>
     <view class="stat">
-      <text class="stat-n serif">{{stats.streak}}</text>
+      <text class="stat-n">{{stats.streak}}</text>
       <text class="stat-l">连续天数</text>
     </view>
     <view class="stat">
-      <text class="stat-n serif">{{stats.stickers}}</text>
+      <text class="stat-n">{{stats.stickers}}</text>
       <text class="stat-l">贴过的贴纸</text>
     </view>
   </view>
 
-  <!-- 会员卡：做成一本墨绿封皮的小册子 -->
-  <view class="vip" bindtap="openMember">
+  <!-- 会员入口 -->
+  <view class="paper vip" bindtap="openMember">
     <view class="vip-main">
-      <text class="vip-t serif">有页会员</text>
+      <text class="vip-t">有页会员</text>
       <text class="vip-s">{{isMember ? '感谢支持，全部权益已解锁' : (beta ? '内测期间，全部权益限时免费' : '更多贴纸、云同步、导出长图')}}</text>
     </view>
     <view class="vip-go">{{isMember ? '查看' : (beta ? '看看权益' : '了解')}}</view>
-    <view class="vip-fold"></view>
   </view>
 
   <view class="paper list">

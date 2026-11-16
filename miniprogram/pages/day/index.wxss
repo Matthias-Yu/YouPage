@@ -153,6 +153,8 @@ page {
   color: var(--accent);
 }
 .sec-n {
+  font-family: var(--numerals);
+  font-variant-numeric: tabular-nums;
   font-size: 22rpx;
   font-weight: 400;
   color: var(--ink-3);
@@ -232,10 +234,10 @@ page {
   justify-content: space-between;
   height: 112rpx;
   padding: 0 20rpx;
-  background: linear-gradient(165deg, #FCFCFC, #F2F2F2);
+  background: var(--paper);
   border: 2rpx solid rgba(255, 255, 255, 0.9);
   border-radius: 36rpx;
-  box-shadow: 0 3rpx 5rpx rgba(0, 0, 0, 0.08), 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow);
 }
 .tools {
   display: flex;
@@ -301,24 +303,10 @@ page {
 /* 贴纸抽屉 */
 .packs {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 16rpx;
+  padding-top: 14rpx;
 }
 .pack {
   position: relative;
-  flex: 1;
-  min-width: 0;
-  margin: 0 4rpx;
-  height: 60rpx;
-  line-height: 60rpx;
-  border-radius: 30rpx;
-  text-align: center;
-  font-size: 24rpx;
-  color: var(--ink-2);
-}
-.pack.on {
-  color: var(--paper);
-  background: var(--accent);
 }
 .pack-tag {
   position: absolute;
@@ -327,6 +315,9 @@ page {
 }
 .grid-scroll {
   height: 520rpx;
+  border-radius: 0 0 20rpx 20rpx;
+  background: linear-gradient(172deg, #E5E5E5 0%, #F7F7F7 48%, #F2F2F2 82%, #FAFAFA 100%);
+  box-shadow: inset 0 1px 0 rgba(20, 20, 20, 0.12), inset 0 -1px 0 #FFF;
 }
 .grid {
   display: flex;

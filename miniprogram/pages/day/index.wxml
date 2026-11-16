@@ -112,7 +112,7 @@
 
   <block wx:elif="{{sheet === 'sticker'}}">
     <view class="packs">
-      <view wx:for="{{packs}}" wx:key="id" class="pack {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">
+      <view wx:for="{{packs}}" wx:key="id" class="sticker-tab pack {{packIdx === index ? 'on' : ''}}" data-i="{{index}}" bindtap="switchPack">
         <text>{{item.name}}</text>
         <text wx:if="{{item.vip}}" class="tag pack-tag">{{beta ? '限免' : '会员'}}</text>
       </view>

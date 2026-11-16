@@ -163,7 +163,7 @@ page {
 .primary {
   width: auto;
   line-height: 80rpx;
-  border-radius: 17rpx;
+  border-radius: var(--radius-control);
   white-space: nowrap;
 }
 

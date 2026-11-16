@@ -1,5 +1,5 @@
 <view class="top">
-  <text class="top-t serif">有页会员</text>
+  <text class="top-t">有页会员</text>
   <text class="top-s">让这本手帐更厚一点，也更安心一点。</text>
 </view>
 
@@ -11,10 +11,10 @@
 
   <view class="paper list">
     <view wx:for="{{benefits}}" wx:key="title" class="item">
-      <asset-image image-class="item-ic" src="{{item.src}}" />
+      <asset-image image-class="item-ic" src="{{item.src}}" mode="aspectFit" />
       <view class="item-tx">
         <view class="item-hd">
-          <text class="item-t serif">{{item.title}}</text>
+          <text class="item-t">{{item.title}}</text>
           <text wx:if="{{!item.ready}}" class="soon">筹备中</text>
         </view>
         <text class="item-d">{{item.desc}}</text>
