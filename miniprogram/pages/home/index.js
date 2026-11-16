@@ -34,6 +34,7 @@ Page({
     safeBottom: 0,
     ready: false,
     open: false,
+    locked: false,
     y: 0,
     m: 0,
     isThisMonth: true,
@@ -79,6 +80,7 @@ Page({
     const panelH = (consentAsk ? this.consentH : DOCK_H) + safeBottom
     this.setData({
       navTop, topH, safeBottom, consentAsk, panelH,
+      locked: store.getSettings().pageLocked === true,
       glH: this.winH - topH - panelH,
       y: t.y, m: t.m,
       ...this.packPage(0, 0)
@@ -109,6 +111,7 @@ Page({
           m: this.data.m,
           year: date.today().y,
           open: startOpen,
+          locked: this.data.locked,
           on: (type, payload) => this.onPlanner(type, payload)
         })
       } catch (e) {
@@ -201,7 +204,7 @@ Page({
   onTouchStart(e) {
     if (!this.planner || this.data.palette) return
     const points = this.pts(e.touches)
-    if (!this.data.toolsOpen) this.planner.touchStart(points)
+    if (this.data.locked || !this.data.toolsOpen) this.planner.touchStart(points)
     else if (points.length >= 2) this.zoomCalendar(points)
     else if (!this.toolPinch && points.length === 1) {
       if (this.data.pickingDay) this.dayTouch = points[0]
@@ -212,14 +215,14 @@ Page({
   onTouchMove(e) {
     if (!this.planner || this.data.palette) return
     const points = this.pts(e.touches)
-    if (!this.data.toolsOpen) this.planner.touchMove(points)
+    if (this.data.locked || !this.data.toolsOpen) this.planner.touchMove(points)
     else if (points.length >= 2) this.zoomCalendar(points)
     else if (!this.toolPinch) this.extendStroke(points.find(p => p.id === this.strokeTouch))
   },
 
   onTouchEnd(e) {
     if (!this.planner || this.data.palette) return
-    if (!this.data.toolsOpen) {
+    if (this.data.locked || !this.data.toolsOpen) {
       this.planner.touchEnd(this.pts(e.touches))
       return
     }
@@ -253,7 +256,7 @@ Page({
 
   onTouchCancel(e) {
     if (!this.planner) return
-    if (!this.data.toolsOpen) this.onTouchEnd(e)
+    if (this.data.locked || !this.data.toolsOpen) this.onTouchEnd(e)
     else {
       this.dayTouch = null
       this.cancelStroke()
@@ -288,6 +291,21 @@ Page({
   },
 
   /* ---------- 底部按钮 ---------- */
+
+  togglePageLock() {
+    if (!this.planner) return
+    const locked = !this.data.locked
+    this.cancelStroke()
+    this.dayTouch = null
+    this.toolPinch = null
+    this.drag = null
+    this.confirmingClear = false
+    this.endInk()
+    this.planner.setLocked(locked)
+    this.setData({ locked })
+    store.setSetting('pageLocked', locked)
+    if (this.data.tray || this.data.toolsOpen || this.data.palette) this.setMenu('book')
+  },
 
   toggleOpen() {
     if (this.planner) this.planner.setOpen(!this.data.open)
@@ -388,6 +406,7 @@ Page({
 
   // 按住贴纸条里的一张往上拖：手指进到画布范围后，场景里有一张悬着的贴纸跟着走
   trayStart(e) {
+    if (this.data.locked) return
     const t = e.touches[0]
     const ds = e.currentTarget.dataset
     this.drag = { t: ds.t, k: ds.k, x0: t.clientX, y0: t.clientY, moved: false }
@@ -395,7 +414,7 @@ Page({
 
   trayMove(e) {
     const d = this.drag
-    if (!d || !this.planner) return
+    if (this.data.locked || !d || !this.planner) return
     const t = e.touches[0]
     if (!d.moved) {
       const dx = t.clientX - d.x0, dy = t.clientY - d.y0
@@ -408,7 +427,7 @@ Page({
   trayEnd() {
     const d = this.drag
     this.drag = null
-    if (!d || !this.planner) return
+    if (this.data.locked || !d || !this.planner) return
     const pack = this.data.packs[this.data.packIdx]
     if (!member.canUsePack(pack)) {
       this.planner.cancelPreview()
@@ -438,13 +457,17 @@ Page({
   },
 
   setMenu(menu) {
+    if (this.data.locked && menu !== 'book') {
+      wx.showToast({ title: '先解锁页面再编辑', icon: 'none', duration: 1200 })
+      return
+    }
     const toolsOpen = menu === 'tools'
     if (this.data.toolsOpen && !toolsOpen) {
       this.finishStroke()
       this.dayTouch = null
       this.toolPinch = null
     }
-    if (toolsOpen !== this.data.toolsOpen) this.planner.setDrawing(toolsOpen)
+    if (toolsOpen !== this.planner.drawing) this.planner.setDrawing(toolsOpen)
     this.layout({ open: this.planner.state.open, tray: menu === 'tray', toolsOpen, pickingDay: false, palette: null }, { animate: true })
     if (toolsOpen) this.updateInkHistory()
   },
@@ -514,6 +537,7 @@ Page({
   },
 
   pickCropDay() {
+    if (this.data.locked) return
     this.finishStroke()
     this.dayTouch = null
     this.setData({ pickingDay: !this.data.pickingDay })
@@ -525,7 +549,7 @@ Page({
   },
 
   startStroke(touch) {
-    if (this.stroke) return
+    if (this.data.locked || this.stroke) return
     const point = this.planner.inkPoint(touch.x, touch.y)
     if (!point) return
     const key = this.inkKey()
@@ -601,14 +625,14 @@ Page({
   },
 
   saveInkEdit(key, previous, next) {
-    if (!store.saveMonthInk(key, next)) return false
+    if (this.data.locked || !store.saveMonthInk(key, next)) return false
     const clear = this.clearHistory(key, previous)
     if (clear) clear.base = next
     return true
   },
 
   clearInk() {
-    if (!this.planner || this.planner.flip || this.confirmingClear) return
+    if (this.data.locked || !this.planner || this.planner.flip || this.confirmingClear) return
     this.finishStroke()
     const key = this.inkKey()
     const lines = store.getMonthInk(key)
@@ -621,7 +645,7 @@ Page({
       confirmText: '清空',
       confirmColor: '#424242',
       success: res => {
-        if (!res.confirm || !this.confirmingClear || this.planner.flip || key !== this.inkKey()) return
+        if (!res.confirm || this.data.locked || !this.confirmingClear || this.planner.flip || key !== this.inkKey()) return
         if (store.getMonthInk(key) !== lines) {
           wx.showToast({ title: '笔迹已更新，请重新确认', icon: 'none' })
           return
@@ -638,6 +662,7 @@ Page({
   },
 
   undoInk() {
+    if (this.data.locked) return
     this.finishStroke()
     if (this.planner.flip) return
     const key = this.inkKey()
@@ -658,6 +683,7 @@ Page({
   },
 
   redoInk() {
+    if (this.data.locked) return
     this.finishStroke()
     if (this.planner.flip || !this.redo) return
     const key = this.inkKey()
@@ -679,7 +705,7 @@ Page({
 
   // 镜头推到那一天的格子上，底部出现输入栏，打的字直接出现在纸页上
   startInk(p) {
-    if (this.data.ink || !this.planner) return
+    if (this.data.locked || this.data.ink || !this.planner) return
     if (!this.planner.focusCell(p.d)) return
     const day = store.getDay(p.key)
     const d = date.parse(p.key)
@@ -689,6 +715,7 @@ Page({
   },
 
   onInk(e) {
+    if (this.data.locked || !this.data.ink) return
     this.inkValue = e.detail.value
     // 每次按键都重画整页贴图太勤，攒一下
     if (this.inkTimer) return

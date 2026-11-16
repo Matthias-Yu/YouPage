@@ -3,6 +3,7 @@
     <asset-image image-class="masthead-mark" src="/assets/logo.png" mode="aspectFit" />
     <text class="masthead-name">有页</text>
     <text wx:if="{{!ready}}" class="masthead-status">正在加载…</text>
+    <text wx:elif="{{locked}}" class="masthead-status">页面已锁定</text>
     <text wx:elif="{{ink}}" class="masthead-status">月历笔记</text>
     <text wx:elif="{{pickingDay}}" class="masthead-status">点日期添加照片</text>
     <text wx:elif="{{toolsOpen}}" class="masthead-status">单指绘画 · 双指缩放</text>
@@ -146,11 +147,18 @@
           </view>
           <view class="month-arrow" data-n="1" bindtap="shiftMonth" hover-class="control-pressed" role="button" aria-label="下个月"><view class="chev r"></view></view>
         </view>
-        <view wx:if="{{!isThisMonth}}" class="rail-side rail-today" bindtap="goToday" hover-class="control-pressed" role="button">今天</view>
-        <view wx:else class="rail-side"></view>
       </block>
-      <view wx:else class="open-book" bindtap="openBook" hover-class="control-pressed" role="button">
-        <text>打开手帐</text><view class="chev r"></view>
+      <block wx:else>
+        <view class="rail-side"></view>
+        <view class="open-book" bindtap="openBook" hover-class="control-pressed" role="button">
+          <text>打开手帐</text><view class="chev r"></view>
+        </view>
+      </block>
+      <view class="rail-actions">
+        <view wx:if="{{open && !isThisMonth}}" class="rail-side rail-today" bindtap="goToday" hover-class="control-pressed" role="button">今天</view>
+        <view class="page-lock {{locked ? 'is-locked' : ''}}" bindtap="togglePageLock" hover-class="control-pressed" role="button" aria-label="{{locked ? '解锁页面' : '锁定页面'}}" aria-pressed="{{locked}}">
+          <asset-image image-class="page-lock-icon" src="/assets/icons/lock.svg" mode="aspectFit" preview-local />
+        </view>
       </view>
     </view>
 
@@ -159,11 +167,11 @@
         <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/book.svg" mode="aspectFit" preview-local /></view>
         <text>手帐</text>
       </view>
-      <view class="dock-item {{tray ? 'is-active' : ''}}" bindtap="toggleTray" hover-class="control-pressed" role="button" aria-label="{{tray ? '收起贴纸' : '打开贴纸'}}">
+      <view class="dock-item {{tray ? 'is-active' : ''}} {{locked ? 'dimmed' : ''}}" bindtap="toggleTray" hover-class="control-pressed" role="button" aria-disabled="{{locked}}" aria-label="{{tray ? '收起贴纸' : '打开贴纸'}}">
         <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/sticker.svg" mode="aspectFit" preview-local /></view>
         <text>贴纸</text>
       </view>
-      <view class="dock-item {{toolsOpen ? 'is-active' : ''}}" bindtap="toggleTools" hover-class="control-pressed" role="button" aria-label="{{toolsOpen ? '收起工具' : '打开工具'}}">
+      <view class="dock-item {{toolsOpen ? 'is-active' : ''}} {{locked ? 'dimmed' : ''}}" bindtap="toggleTools" hover-class="control-pressed" role="button" aria-disabled="{{locked}}" aria-label="{{toolsOpen ? '收起工具' : '打开工具'}}">
         <view class="dock-icon"><asset-image image-class="dock-img" src="/assets/icons/pencil.svg" mode="aspectFit" preview-local /></view>
         <text>工具</text>
       </view>

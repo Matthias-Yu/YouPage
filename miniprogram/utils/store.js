@@ -10,7 +10,7 @@
 //   yp:h:2026-11   { habitId: { '12': 1 } }
 //   ——以上五类会同步到云端——
 //   yp:index       ['2026-11', ...]            有内容的月份（由月份数据推出来，不同步）
-//   yp:settings    { cover, weekStart, sound, tape, sync }   这台设备自己的设置（不同步）
+//   yp:settings    { cover, weekStart, sound, tape, sync, pageLocked }   这台设备自己的设置（不同步）
 
 const date = require('./date')
 
@@ -278,8 +278,9 @@ function habitStreak(id) {
 
 // tape: 桌上那卷胶带当前的花色（utils/catalog.js 里 TAPES 的 id）
 // sync: 这台设备是否参与云同步
+// pageLocked: 首页手帐只允许翻阅与调整视角
 // consentV / consentOk: 用户对哪一版隐私政策做了选择、是否同意（utils/consent.js）
-const DEFAULT_SETTINGS = { cover: true, weekStart: 1, sound: true, tape: 'gingham', sync: true, consentV: '', consentOk: false }
+const DEFAULT_SETTINGS = { cover: true, weekStart: 1, sound: true, tape: 'gingham', sync: true, pageLocked: false, consentV: '', consentOk: false }
 
 function getSettings() {
   return Object.assign({}, DEFAULT_SETTINGS, read(K_SETTINGS, {}))

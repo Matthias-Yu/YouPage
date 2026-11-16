@@ -2,9 +2,10 @@
 // 坐标单位是厘米。本子平放在 XY 平面上，+Z 朝向镜头；纸页占 x∈[0,W]、y∈[-H/2,H/2]。
 //
 // 对外接口（页面只和这些打交道）：
-//   new Planner(canvas, { width, height, dpr, y, m, year, open, on(type, data) })
+//   new Planner(canvas, { width, height, dpr, y, m, year, open, locked, on(type, data) })
 //   touchStart / touchMove / touchEnd      手势（坐标相对画布左上角，px）
 //   setOpen(bool) / setMonth(y, m)         开合封面、翻到某月
+//   setLocked(bool)                       锁住内容编辑，保留翻阅和视角手势
 //   refresh()                              数据变了，重画当前月
 //   addSticker(t, k)                       往纸页中间贴一张
 //   previewAt / commitPreview / cancelPreview   从贴纸条拖一张出来
@@ -71,6 +72,7 @@ class Planner {
     this.h = opts.height
     this.bufferH = this.h
     this.emit = opts.on || function () {}
+    this.locked = !!opts.locked
 
     const THREE = this.THREE = createScopedThreejs(canvas)
     const renderer = this.renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -693,6 +695,7 @@ class Planner {
   }
 
   setDrawing(on) {
+    on = on && !this.locked
     this.drawing = on
     if (on && !this.inkMesh) {
       const THREE = this.THREE
@@ -737,7 +740,7 @@ class Planner {
   }
 
   inkPoint(x, y, clampToPage) {
-    if (!this.canStick() || this.state.focus) return null
+    if (this.locked || !this.canStick() || this.state.focus) return null
     this.camera.updateMatrixWorld()
     const p = this.pagePoint(x, y, this.pageMesh.position.z)
     if (!p || (!clampToPage && !this.onPage(p, 0))) return null
@@ -997,7 +1000,7 @@ class Planner {
 
   // 往纸页中间贴一张
   addSticker(t, k) {
-    if (!this.canStick()) return false
+    if (this.locked || !this.canStick()) return false
     const st = {
       id: newId(), t, k,
       x: Math.round((0.5 + (Math.random() - 0.5) * 0.3) * 1000) / 1000,
@@ -1026,7 +1029,7 @@ class Planner {
 
   // 从贴纸条里拖出来：手指经过画布时，一张悬着的贴纸跟着走
   previewAt(t, k, x, y) {
-    if (!this.canStick()) return
+    if (this.locked || !this.canStick()) return
     if (!this.preview) {
       const st = { id: newId(), t, k, x: 0.5, y: 0.5, s: 1, r: Math.round((Math.random() - 0.5) * 16) }
       this.holdPreview(this.stickerMesh(st))
@@ -1052,7 +1055,7 @@ class Planner {
     const mesh = this.preview
     this.preview = null
     if (!mesh) return false
-    if (!this.canStick() || !this.onPage({ x: mesh.position.x, y: mesh.position.y }, 0)) {
+    if (this.locked || !this.canStick() || !this.onPage({ x: mesh.position.x, y: mesh.position.y }, 0)) {
       this.stickerG.remove(mesh)
       this.dirty = true
       return false
@@ -1259,6 +1262,7 @@ class Planner {
 
   // 把镜头正对着推到某天的格子上（写字时用）
   focusCell(d, dur) {
+    if (this.locked) return false
     const cell = this.cellOf(d)
     if (!cell || !this.state.open || this.state.t < 1 || this.flip) return false
     this.state.focus = true
@@ -1309,10 +1313,29 @@ class Planner {
 
   /* ---------- 手势 ---------- */
 
+  setLocked(locked) {
+    this.locked = !!locked
+    this.g = null
+    this.lastTap = 0
+    if (this.flip && !this.flip.anim) this.endFlip(false)
+    this.cancelPreview()
+    if (this.pull) {
+      this.pull = null
+      this.strip.visible = false
+      this.restTail()
+    }
+    if (this.grabbed) {
+      // 放回上次保存的位置、尺寸和层级，撤掉尚未松手的拖拽。
+      this.grabbed = null
+      this.loadStickers()
+    }
+    if (this.locked) this.setDrawing(false)
+  }
+
   hit(x, y) {
     const rc = this.raycaster
     rc.setFromCamera({ x: (x / this.w) * 2 - 1, y: -(y / this.h) * 2 + 1 }, this.camera)
-    if (this.canStick()) {
+    if (!this.locked && this.canStick()) {
       const hs = rc.intersectObjects(this.stickerG.children)
       if (hs.length) {
         // 叠在一起时拿最上面那张
@@ -1379,7 +1402,7 @@ class Planner {
       if (dx * dx + dy * dy < 64) return
       g.moved = true
       if (this.grabbed) g.mode = 'sticker'
-      else if (g.hit.type === 'roll') {
+      else if (g.hit.type === 'roll' && !this.locked) {
         if (this.canStick()) {
           g.mode = 'tape'
           this.startPull()
@@ -1447,8 +1470,8 @@ class Planner {
     if (hit.type === 'cover') this.setOpen(!this.state.open)
     else if (hit.type === 'tab') this.emit('tab', hit.m)
     else if (hit.type === 'charm') this.swing()
-    else if (hit.type === 'roll') this.nextRoll()
-    else if (hit.type === 'page') {
+    else if (hit.type === 'roll' && !this.locked) this.nextRoll()
+    else if (hit.type === 'page' && !this.locked) {
       const lx = hit.point.x / W * draw.LW
       const ly = (H / 2 - hit.point.y) / H * draw.LH
       const cell = this.calendarCell(lx, ly)

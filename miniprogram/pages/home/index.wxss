@@ -101,6 +101,41 @@ page {
   color: #353535;
   font-weight: 500;
 }
+.rail-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+.page-lock {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+.page-lock.is-locked::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  bottom: 6px;
+  left: 6px;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+}
+.page-lock-icon {
+  position: relative;
+  width: 19px;
+  height: 19px;
+  opacity: 0.65;
+}
+.page-lock.is-locked .page-lock-icon {
+  opacity: 1;
+  filter: brightness(0) invert(1);
+}
 .month-picker {
   display: flex;
   align-items: center;
@@ -334,6 +369,9 @@ page {
 }
 
 @media (max-width: 340px) {
+  .rail-side { flex-basis: 40px; }
+  .month-arrow { width: 32px; }
+  .month-label { min-width: 80px; }
   .drawing-glyph { width: 20px; height: 20px; }
   .swatch, .size-btn { width: 26px; }
 }
