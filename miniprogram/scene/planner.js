@@ -38,6 +38,7 @@ const RING_X = 0.08, RING_Z = CT + 0.6, RING_R = 0.62
 const FOV = 30
 const DEG = Math.PI / 180
 const MENU_TRANSITION_MS = 260
+const NO_INK = Object.freeze([])
 
 const TAPE_W = 0.8                  // 胶带宽
 const TAPE_LEN = 4.4                // 撕下来的一段有多长
@@ -79,6 +80,7 @@ class Planner {
     renderer.setPixelRatio(Math.min(opts.dpr || 2, 2))
     renderer.setSize(this.w, this.h, false)
     renderer.setClearColor(DESK, 1)
+    renderer.shadowMap.autoUpdate = false
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     this.aniso = Math.min(4, renderer.capabilities.getMaxAnisotropy())
@@ -91,18 +93,22 @@ class Planner {
     this.state = { open: false, t: 0, y: opts.y, m: opts.m, flipping: false, focus: false }
     this.rig = { az: 0, el: -0.2, dist: 60, tx: W / 2, ty: 0, tz: 1 }
     this.draft = null
+    this.drawing = false
     this.preview = null
     this.flip = null
     this.pull = null
     this.tapeTex = {}
     this.tapeMats = {}
+    this.textures = new Set()
+    this.stickerGeometries = new Map()
     this.tweens = []
     this.stickers = []
     this.pickables = []
     this.grabbed = null
     this.g = null
-    this.dirty = true
-    this.running = true
+    this.frameId = null
+    this.tick = this.tick.bind(this)
+    this.running = false
 
     this.buildLights()
     this.buildDesk()
@@ -111,25 +117,25 @@ class Planner {
     this.buildRoll(store.getSettings().tape)
     // 贴纸材质要先于任何一张贴纸建好（没有材质的 Mesh 会被 three 配上随机颜色）
     this.loadAtlasTexture()
-    this.drawMonth(this.texTop)
-    this.loadStickers()
-    this.updateTabs()
     if (opts.open) {
       this.state.open = true
       this.setOpenT(1)
-      this.updateTabs()
     }
+    this.updateTabs()
+    // 封面、内衬等静态贴图已经取出像素，可以释放启动时的大画布。
+    this.painter.releaseScratch()
+    this.drawMonth(this.texTop)
+    this.loadStickers()
     this.frame(false)
 
     this.painter.loadAtlas(() => {
       if (this.disposed) return
       // 图集到了：重画月历页（心情章、插画）
-      this.drawMonth(this.texTop)
-      this.dirty = true
+      this.atlasReady = true
+      this.refresh()
     })
 
-    this.tick = this.tick.bind(this)
-    canvas.requestAnimationFrame(this.tick)
+    this.resume()
   }
 
   /* ---------- 贴图与材质 ---------- */
@@ -146,7 +152,32 @@ class Planner {
       tex.repeat.set(opts.repeat[0], opts.repeat[1])
     }
     tex.needsUpdate = true
+    this.textures.add(tex)
     return tex
+  }
+
+  // CPU 保留完整像素供上下文恢复使用。r108 的局部上传不自动更新 mipmap。
+  patchTexture(tex, patch) {
+    const stride = patch.width * 4
+    for (let row = 0; row < patch.height; row++) {
+      const offset = ((patch.y + row) * tex.image.width + patch.x) * 4
+      tex.image.data.set(patch.data.subarray(row * stride, (row + 1) * stride), offset)
+    }
+    if (!this.running) {
+      tex.needsUpdate = true
+      return
+    }
+    if (!this.patchTex) this.patchTex = new this.THREE.DataTexture()
+    this.patchTex.image = patch
+    const gl = this.renderer.getContext()
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, tex.flipY)
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
+    // 笔迹保留原来的翻转上传方式，子区域的起点也要从贴图底部算起。
+    const offset = tex.flipY ? { x: patch.x, y: tex.image.height - patch.y - patch.height } : patch
+    this.renderer.copyTextureToTexture(offset, this.patchTex, tex)
+    if (tex.generateMipmaps) gl.generateMipmap(gl.TEXTURE_2D)
+    this.patchTex.image = null
   }
 
   lambert(color, map) {
@@ -156,6 +187,7 @@ class Planner {
   loadAtlasTexture() {
     const THREE = this.THREE
     const tex = this.atlasTex = new THREE.Texture()
+    this.textures.add(tex)
     tex.anisotropy = this.aniso
     this.stickerMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
     this.stickerMat.visible = false
@@ -165,7 +197,7 @@ class Planner {
       tex.image = img
       tex.needsUpdate = true
       this.stickerMat.visible = true
-      this.dirty = true
+      this.invalidate()
     }, e => console.error('[planner] atlas texture failed', e))
   }
 
@@ -389,14 +421,15 @@ class Planner {
     this.tabs = []
     const th = (H - 1.0) / 12
     const tabGeo = this.plate(0.82, th - 0.13, 0.18, 0.04)
+    const tabEdge = this.lambert(0x939393)
     for (let i = 0; i < 12; i++) {
       const tab = new THREE.Mesh(tabGeo, [
         this.lambert(0, this.texture(this.painter.tab(i + 1, false))),
-        this.lambert(0x939393)
+        tabEdge
       ])
       tab.position.set(W - 0.12, H / 2 - 0.5 - th * (i + 0.5), PAGE_Z - 0.035)
       tab.castShadow = true
-      tab.userData = { type: 'tab', m: i + 1, on: this.texture(this.painter.tab(i + 1, true)), off: tab.material[0].map }
+      tab.userData = { type: 'tab', m: i + 1, on: null, off: tab.material[0].map }
       this.tabs.push(tab)
       book.add(tab)
     }
@@ -609,7 +642,7 @@ class Planner {
     uv.needsUpdate = true
     mesh.geometry.computeBoundingSphere()
     mesh.geometry.computeBoundingBox()
-    this.dirty = true
+    this.invalidate()
   }
 
   setRoll(k) {
@@ -625,8 +658,9 @@ class Planner {
     const r0 = this.roll.rotation.z
     this.tween(420, q => {
       this.roll.rotation.z = r0 + q * Math.PI * 0.5
+      this.shadowsDirty = true
     }, null, easeOut)
-    this.dirty = true
+    this.invalidate()
   }
 
   // 点一下胶带卷：换下一种花色
@@ -641,6 +675,7 @@ class Planner {
 
   // t: 0 合上 → 1 摊开
   setOpenT(t) {
+    this.shadowsDirty = true
     this.state.t = t
     this.spineG.rotation.y = -(Math.PI / 2) * (1 + t)
     this.coverG.rotation.y = (Math.PI / 2) * (1 - t)
@@ -651,10 +686,11 @@ class Planner {
     this.titlePage.visible = t < 0.58
     this.stickerG.visible = !this.titlePage.visible
     if (this.charm) this.poseCharm()
-    this.dirty = true
+    this.invalidate()
   }
 
   poseCharm() {
+    this.shadowsDirty = true
     const t = this.state.t
     const angle = -2.42 + 2.66 * t
     this.charm.position.set(HX + 0.37 - 0.16 * t, COVER_H / 2 - 1.26 + 0.48 * t, 1.99 - 1.65 * t)
@@ -667,12 +703,29 @@ class Planner {
   // 把某个月画进贴图，返回这个月的格子布局
   paint(tex, y, m, draft) {
     const weekStart = store.getSettings().weekStart
-    const preview = this.drawing && this.inkMesh.visible && tex === this.texTop && y === this.state.y && m === this.state.m
-    const lines = preview ? [] : store.getMonthInk(date.ym(y, m))
-    tex.image = this.painter.month(y, m, weekStart, draft, lines)
-    tex.needsUpdate = true
-    this.dirty = true
-    return draw.layout(y, m, weekStart)
+    const key = date.ym(y, m)
+    const data = store.rawMonth(key)
+    const saved = store.getMonthInk(key)
+    const overlay = this.drawing && this.inkMesh.visible && tex === this.texTop
+    const lines = overlay || !saved.length ? NO_INK : saved
+    const today = date.today().key
+    const page = tex.calendar
+    const sameGrid = page && page.key === key && page.weekStart === weekStart
+    const samePage = sameGrid && page.data === data && page.lines === lines &&
+      page.today === today && page.atlasReady === this.atlasReady
+    if (samePage && page.draft === draft) return page.layout
+
+    const layout = sameGrid ? page.layout : draw.layout(y, m, weekStart)
+    const editing = samePage && draft && page.draft && draft.d === page.draft.d
+    const patch = editing && this.painter.updateDraft(draft, lines)
+    if (patch) this.patchTexture(tex, patch)
+    else {
+      tex.image = this.painter.month({ y, m, weekStart, data, lines, draft, today, layout })
+      tex.needsUpdate = true
+    }
+    tex.calendar = { key, weekStart, layout, data, lines, today, draft, atlasReady: this.atlasReady }
+    this.invalidate()
+    return layout
   }
 
   drawMonth(tex) {
@@ -683,19 +736,35 @@ class Planner {
 
   // 正在往某天的格子里写字：把输入中的文字直接画到纸上。d 为 0 表示写完了
   setDraft(d, text) {
-    this.draft = d ? { d, text: text || '' } : null
+    if (!d) this.draft = null
+    else if (!this.draft || this.draft.d !== d || this.draft.text !== text) {
+      this.draft = { d, text: text || '' }
+    }
     this.drawMonth(this.texTop)
   }
 
   refresh() {
-    if (this.flip) return
+    if (this.flip || !this.running) return
     this.drawMonth(this.texTop)
-    this.loadStickers()
-    this.inkDirty = true
+    const key = date.ym(this.state.y, this.state.m)
+    if (this.decoSource !== store.getMonthDeco(key)) {
+      if (this.grabbed || this.preview || this.pull) {
+        this.g = null
+        this.grabbed = null
+        if (this.pull) {
+          this.pull = null
+          this.strip.visible = false
+          this.restTail()
+        }
+      }
+      this.loadStickers()
+    }
+    if (this.drawing && this.inkSaved !== store.getMonthInk(key)) this.previewInk(this.inkLine)
   }
 
   setDrawing(on) {
     on = on && !this.locked
+    if (on === this.drawing) return
     this.drawing = on
     if (on && !this.inkMesh) {
       const THREE = this.THREE
@@ -703,6 +772,7 @@ class Planner {
       this.inkPreview = new InkLayer(draw.LW, draw.LH)
       // 2D 画布的像素从上往下，WebGL 的 UV 从下往上。
       this.inkTex = new THREE.DataTexture(null, 1, 1, THREE.RGBAFormat)
+      this.textures.add(this.inkTex)
       this.inkTex.flipY = true
       this.inkTex.minFilter = this.inkTex.magFilter = THREE.LinearFilter
       this.inkTex.generateMipmaps = false
@@ -718,25 +788,35 @@ class Planner {
     this.previewInk(null)
     this.inkMesh.visible = on && !this.flip
     if (!this.flip) this.drawMonth(this.texTop)
+    this.invalidate()
   }
 
   previewInk(line) {
     this.inkLine = line
     this.inkDirty = true
+    if (this.inkMesh && this.inkMesh.visible) this.invalidate()
   }
 
   drawInkPreview() {
     const saved = store.getMonthInk(date.ym(this.state.y, this.state.m))
-    if (this.inkSaved !== saved) {
-      this.inkSaved = saved
-      this.inkLayer.paint(saved)
-    }
-    const layer = this.inkLine ? this.inkPreview : this.inkLayer
-    if (this.inkLine) layer.preview(this.inkLayer, this.inkLine)
-    this.inkTex.image = layer.pixels()
-    this.inkTex.needsUpdate = true
+    const line = this.inkLine
+    const sameBase = this.inkSaved === saved
     this.inkDirty = false
-    this.dirty = true
+    if (sameBase && !line && !this.lastInkLine) return
+    if (!sameBase) this.inkLayer.paint(saved)
+    const layer = line ? this.inkPreview : this.inkLayer
+    // 两次采样之间可能取消笔迹、松手或收到云更新。这时要恢复整层。
+    if (line) layer.preview(this.inkLayer, line)
+    if (line && sameBase && (!this.lastInkLine || this.lastInkLine === line)) {
+      const bounds = layer.bounds(line)
+      this.patchTexture(this.inkTex, layer.pixels(bounds))
+    } else {
+      this.inkTex.image = layer.pixels()
+      this.inkTex.needsUpdate = true
+    }
+    this.inkSaved = saved
+    this.lastInkLine = line
+    this.invalidate()
   }
 
   inkPoint(x, y, clampToPage) {
@@ -759,6 +839,7 @@ class Planner {
   updateTabs() {
     this.tabs.forEach(tab => {
       const on = tab.userData.m === this.state.m
+      if (on && !tab.userData.on) tab.userData.on = this.texture(this.painter.tab(this.state.m, true))
       tab.material[0].map = on ? tab.userData.on : tab.userData.off
       tab.position.x = W + (on ? -0.015 : -0.12)
     })
@@ -767,13 +848,14 @@ class Planner {
 
   // 左边那一摞：翻过去的月份越多越厚
   updateLeft(m) {
+    this.shadowsDirty = true
     const n = m - 1
     const thick = 0.05 + 0.08 * n
     this.leftBox.scale.z = thick
     this.leftBox.position.z = CT + thick / 2
     this.leftTop.position.z = CT + thick + 0.006
     this.leftG.visible = this.state.open && this.state.t > 0.97
-    this.dirty = true
+    this.invalidate()
   }
 
   setMonth(y, m) {
@@ -783,6 +865,7 @@ class Planner {
     if (!s.open || s.t < 1) {
       s.y = y
       s.m = m
+      if (this.drawing) this.previewInk(null)
       this.drawMonth(this.texTop)
       this.loadStickers()
       this.updateTabs()
@@ -805,8 +888,9 @@ class Planner {
     const oldTex = this.texTop, newTex = this.texSpare
     const layoutNew = this.paint(newTex, to.y, to.m, null)
     const oldMeshes = this.stickerG.children.slice()
-    const newMeshes = this.stickerMeshes(to.y, to.m)
-    this.flip = { dir, to, oldTex, newTex, layoutNew, k: 0, anim: false }
+    const source = store.getMonthDeco(date.ym(to.y, to.m))
+    const newMeshes = this.stickerMeshes(source)
+    this.flip = { dir, to, oldTex, newTex, layoutNew, source, newMeshes, k: 0, anim: false }
     s.flipping = true
     this.flipFront.material.map = dir > 0 ? oldTex : newTex
     this.pageMesh.material.map = dir > 0 ? newTex : oldTex
@@ -867,18 +951,19 @@ class Planner {
     this.pageMesh.material.map = this.texTop
     if (this.inkMesh) {
       this.inkMesh.visible = this.drawing
-      if (this.drawing) {
-        this.drawMonth(this.texTop)
-        this.inkDirty = true
-      }
+      if (this.drawing) this.previewInk(null)
     }
-    this.loadStickers()
+    // 翻页中可能有云更新或图集到达，落页时重新核对来源。
+    this.drawMonth(this.texTop)
+    const source = store.getMonthDeco(date.ym(s.y, s.m))
+    this.loadStickers(commit && source === f.source ? f.newMeshes : undefined)
     this.updateTabs()
     if (commit) this.emit('month', { y: s.y, m: s.m })
   }
 
   // a: 0 平躺在右边 → π 翻到左边。纸的外缘比装订边慢半拍，所以中途是弯的
   bendFlip(a) {
+    this.shadowsDirty = true
     const pos = this.flipGeo.attributes.position
     const curl = -0.75 * Math.sin(a)
     for (let i = 0; i < pos.count; i++) {
@@ -908,7 +993,7 @@ class Planner {
       mesh.scale.set(st.s, st.s, 1)
       mesh.renderOrder = 10 + i
     }
-    this.dirty = true
+    this.invalidate()
   }
 
   setOpen(open) {
@@ -931,26 +1016,34 @@ class Planner {
     if (st.t === 't') {
       mesh = new THREE.Mesh(this.tapeGeometry(), this.tapeMaterial(st.k))
     } else {
-      const cell = atlas.map[catalog.stickerKey(st.k)]
-      // 老字签以原本的高度贴入方形插画，避免把图案横向拉长。
-      const size = catalog.isWide(st.k) ? 1.6 : 2.1
-      const geo = new THREE.PlaneBufferGeometry(size, size)
-      const du = atlas.cell / atlas.width, dv = atlas.cell / atlas.height
-      const u0 = cell[0] * du, u1 = u0 + du
-      const v1 = 1 - cell[1] * dv, v0 = v1 - dv
-      const uv = geo.attributes.uv
-      uv.setXY(0, u0, v1)
-      uv.setXY(1, u1, v1)
-      uv.setXY(2, u0, v0)
-      uv.setXY(3, u1, v0)
-      mesh = new THREE.Mesh(geo, this.stickerMat)
+      mesh = new THREE.Mesh(this.stickerGeometry(st.k), this.stickerMat)
     }
     mesh.userData = { type: 'sticker', st }
     return mesh
   }
 
-  stickerMeshes(y, m) {
-    return store.getMonthDeco(date.ym(y, m)).map(st => this.stickerMesh(Object.assign({}, st)))
+  stickerGeometry(key) {
+    const art = catalog.stickerKey(key)
+    // 老字签以原本的高度贴入方形插画，尺寸也要进入缓存键。
+    const size = catalog.isWide(key) ? 1.6 : 2.1
+    const cacheKey = art + '/' + size
+    let geo = this.stickerGeometries.get(cacheKey)
+    if (geo) return geo
+    const cell = atlas.map[art]
+    const du = atlas.cell / atlas.width, dv = atlas.cell / atlas.height
+    const u0 = cell[0] * du, v1 = 1 - cell[1] * dv
+    geo = new this.THREE.PlaneBufferGeometry(size, size)
+    const uv = geo.attributes.uv
+    uv.setXY(0, u0, v1)
+    uv.setXY(1, u0 + du, v1)
+    uv.setXY(2, u0, v1 - dv)
+    uv.setXY(3, u0 + du, v1 - dv)
+    this.stickerGeometries.set(cacheKey, geo)
+    return geo
+  }
+
+  stickerMeshes(source) {
+    return source.map(st => this.stickerMesh(Object.assign({}, st)))
   }
 
   // st.x: 0–1（纸宽），st.y: 距纸页上缘多少个纸宽，st.r: 顺时针角度
@@ -962,21 +1055,23 @@ class Planner {
     mesh.renderOrder = 10 + i
   }
 
-  loadStickers() {
+  loadStickers(meshes) {
     const g = this.stickerG
     while (g.children.length) g.remove(g.children[0])
     this.preview = null
-    const meshes = this.stickerMeshes(this.state.y, this.state.m)
+    this.decoSource = store.getMonthDeco(date.ym(this.state.y, this.state.m))
+    meshes = meshes || this.stickerMeshes(this.decoSource)
     this.stickers = meshes.map(mesh => mesh.userData.st)
     meshes.forEach((mesh, i) => {
       this.placeSticker(mesh, i)
       g.add(mesh)
     })
-    this.dirty = true
+    this.invalidate()
   }
 
   saveStickers() {
-    store.saveMonthDeco(date.ym(this.state.y, this.state.m), this.stickers)
+    this.decoSource = this.stickers.map(st => Object.assign({}, st))
+    store.saveMonthDeco(date.ym(this.state.y, this.state.m), this.decoSource)
   }
 
   // 屏幕上一点落在纸页平面的哪里（世界坐标），落不到返回 null
@@ -1037,7 +1132,7 @@ class Planner {
     const p = this.pagePoint(x, y)
     if (!p) return
     this.preview.position.set(p.x, p.y, 0.35)
-    this.dirty = true
+    this.invalidate()
   }
 
   // 一张悬在纸上方、还没贴下去的贴纸
@@ -1057,7 +1152,7 @@ class Planner {
     if (!mesh) return false
     if (this.locked || !this.canStick() || !this.onPage({ x: mesh.position.x, y: mesh.position.y }, 0)) {
       this.stickerG.remove(mesh)
-      this.dirty = true
+      this.invalidate()
       return false
     }
     const st = mesh.userData.st
@@ -1075,7 +1170,7 @@ class Planner {
     if (!this.preview) return
     this.stickerG.remove(this.preview)
     this.preview = null
-    this.dirty = true
+    this.invalidate()
   }
 
   /* ---------- 从胶带卷上拉一段 ---------- */
@@ -1093,7 +1188,7 @@ class Planner {
     if (pull.torn) {
       // 撕下来以后，手指捏着这段的一头
       this.preview.position.set(p.x + pull.off.x, p.y + pull.off.y, 0.35)
-      this.dirty = true
+      this.invalidate()
       return
     }
     const dx = p.x - ROLL.x, dy = p.y - ROLL.y
@@ -1106,7 +1201,7 @@ class Planner {
     pull.len = len
     if (len < 0.1) {
       this.strip.visible = false
-      this.dirty = true
+      this.invalidate()
       return
     }
     this.strip.visible = true
@@ -1210,7 +1305,7 @@ class Planner {
     else {
       Object.assign(this.rig, to)
       this.applyRig()
-      this.dirty = true
+      this.invalidate()
     }
   }
 
@@ -1253,7 +1348,7 @@ class Planner {
     if (this.state.focus) this.focusCell(this.focusD, 260)
     else if (!keepView) this.frame(true)
     this.applyRig()
-    this.dirty = true
+    this.invalidate()
   }
 
   cellOf(d) {
@@ -1308,7 +1403,7 @@ class Planner {
       this.rig.ty = clamp(this.rig.ty + zoom.anchor.y - point.y, -H / 2, H / 2)
       this.applyRig()
     }
-    this.dirty = true
+    this.invalidate()
   }
 
   /* ---------- 手势 ---------- */
@@ -1392,7 +1487,7 @@ class Planner {
         this.rig.dist = clamp(g.pinch.dist / k, 12, 150)
         this.applyRig()
       }
-      this.dirty = true
+      this.invalidate()
       return
     }
     if (g.pinch) return // 两指抬起一指之后不再当成拖动
@@ -1424,7 +1519,7 @@ class Planner {
       if (p) {
         this.grabbed.position.x = p.x + this.grabOff.x
         this.grabbed.position.y = p.y + this.grabOff.y
-        this.dirty = true
+        this.invalidate()
       }
     } else if (g.mode === 'tape') {
       this.movePull(t)
@@ -1437,7 +1532,7 @@ class Planner {
       this.rig.az = clamp(g.rig.az - dx * 0.005, -0.8, 0.8)
       this.rig.el = clamp(g.rig.el + dy * 0.005, -0.85, 0.35)
       this.applyRig()
-      this.dirty = true
+      this.invalidate()
     }
   }
 
@@ -1493,7 +1588,7 @@ class Planner {
     mesh.position.z = 0.004 * (this.stickers.length + 2)
     mesh.renderOrder = 999
     mesh.scale.set(st.s * 1.06, st.s * 1.06, 1)
-    this.dirty = true
+    this.invalidate()
   }
 
   release() {
@@ -1506,7 +1601,7 @@ class Planner {
       this.stickers.splice(this.stickers.indexOf(st), 1)
       this.tween(220, k => mesh.scale.set(st.s * (1 - k), st.s * (1 - k), 1), () => {
         this.stickerG.remove(mesh)
-        this.dirty = true
+        this.invalidate()
       })
       sound.play('tear')
       this.emit('toast', '撕掉了')
@@ -1515,13 +1610,15 @@ class Planner {
       st.y = Math.round(((H / 2 - mesh.position.y) / W) * 1000) / 1000
       sound.play('stick')
     }
+    const order = new Map()
+    this.stickers.forEach((st, i) => order.set(st, i))
     this.stickerG.children.forEach(m => {
-      const i = this.stickers.indexOf(m.userData.st)
-      if (i > -1 && m !== mesh) this.placeSticker(m, i)
+      const i = order.get(m.userData.st)
+      if (i !== undefined && m !== mesh) this.placeSticker(m, i)
     })
     if (inside) this.placeSticker(mesh, this.stickers.indexOf(st))
     this.saveStickers()
-    this.dirty = true
+    this.invalidate()
   }
 
   swing() {
@@ -1540,6 +1637,7 @@ class Planner {
   tween(dur, fn, done, easing) {
     const tw = { t0: Date.now(), dur, fn, done, easing: easing || easeInOut }
     this.tweens.push(tw)
+    this.invalidate()
     return tw
   }
 
@@ -1559,6 +1657,14 @@ class Planner {
     if (i > -1) this.tweens.splice(i, 1)
   }
 
+  // 同一帧的输入、贴图加载和动画共用一次回调。静止时没有待执行的帧。
+  invalidate() {
+    this.dirty = true
+    if (this.running && this.frameId === null) {
+      this.frameId = this.canvas.requestAnimationFrame(this.tick)
+    }
+  }
+
   tick() {
     if (!this.running) return
     const now = Date.now()
@@ -1573,35 +1679,50 @@ class Planner {
           if (tw.done) tw.done()
         }
       })
-      this.dirty = true
+      this.invalidate()
     }
     if (this.inkDirty && this.inkMesh && this.inkMesh.visible) this.drawInkPreview()
     if (this.dirty) {
       this.dirty = false
+      if (this.shadowsDirty) {
+        this.renderer.shadowMap.needsUpdate = true
+        this.shadowsDirty = false
+      }
       this.renderer.render(this.scene, this.camera)
     }
-    this.canvas.requestAnimationFrame(this.tick)
+    this.frameId = null
+    if (this.dirty || this.tweens.length) this.invalidate()
   }
 
   pause() {
     this.running = false
+    if (this.frameId != null) this.canvas.cancelAnimationFrame(this.frameId)
+    this.frameId = null
   }
 
   resume() {
-    if (this.running) return
+    if (this.running || this.disposed) return
     this.running = true
-    this.dirty = true
-    this.canvas.requestAnimationFrame(this.tick)
+    this.shadowsDirty = true
+    this.invalidate()
   }
 
   dispose() {
     this.disposed = true
-    this.running = false
+    this.pause()
     this.tweens = []
-    if (this.inkMesh) {
-      this.inkTex.dispose()
-      this.inkMesh.material.dispose()
-    }
+    const geometries = new Set(this.stickerGeometries.values())
+    if (this.tapeGeo) geometries.add(this.tapeGeo)
+    const materials = new Set([this.stickerMat, ...Object.values(this.tapeMats)])
+    this.scene.traverse(obj => {
+      if (obj.geometry) geometries.add(obj.geometry)
+      if (Array.isArray(obj.material)) obj.material.forEach(mat => materials.add(mat))
+      else if (obj.material) materials.add(obj.material)
+      if (obj.shadow && obj.shadow.map) obj.shadow.map.dispose()
+    })
+    geometries.forEach(geo => geo.dispose())
+    materials.forEach(mat => mat.dispose())
+    this.textures.forEach(tex => tex.dispose())
     try {
       this.renderer.dispose()
     } catch (e) {}

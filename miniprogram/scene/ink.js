@@ -50,8 +50,34 @@ class InkLayer {
   }
 
   paint(lines) {
-    this.clear()
-    lines.forEach(line => stroke(this.ctx, line))
+    const previous = this.lines
+    if (lines === previous) return
+    const appended = previous && lines.length === previous.length + 1 &&
+      previous.every((line, i) => line === lines[i])
+    if (appended) stroke(this.ctx, lines[lines.length - 1])
+    else {
+      this.clear()
+      lines.forEach(line => stroke(this.ctx, line))
+    }
+    this.lines = lines
+  }
+
+  bounds(line) {
+    const { points, width } = line
+    let left = points[0], right = left, top = points[1], bottom = top
+    for (let i = 2; i < points.length; i += 2) {
+      left = Math.min(left, points[i])
+      right = Math.max(right, points[i])
+      top = Math.min(top, points[i + 1])
+      bottom = Math.max(bottom, points[i + 1])
+    }
+    const r = width / 2
+    // 两个额外的像素包含边缘抗锯齿。
+    const x = Math.max(0, Math.floor((left - r) * this.scaleX) - 2)
+    const y = Math.max(0, Math.floor((top - r) * this.scaleY) - 2)
+    const w = Math.min(WIDTH, Math.ceil((right + r) * this.scaleX) + 2) - x
+    const h = Math.min(HEIGHT, Math.ceil((bottom + r) * this.scaleY) + 2) - y
+    return { x, y, width: w, height: h }
   }
 
   preview(base, line) {
@@ -60,9 +86,9 @@ class InkLayer {
     stroke(this.ctx, line)
   }
 
-  pixels() {
-    const image = this.ctx.getImageData(0, 0, WIDTH, HEIGHT)
-    return { data: new Uint8Array(image.data.buffer), width: WIDTH, height: HEIGHT }
+  pixels({ x = 0, y = 0, width = WIDTH, height = HEIGHT } = {}) {
+    const { data } = this.ctx.getImageData(x, y, width, height)
+    return { x, y, width, height, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) }
   }
 }
 

@@ -87,7 +87,7 @@ Page({
     })
     // 云端有新内容拉下来了：重画纸页
     this.offSync = sync.subscribe(type => {
-      if (type === 'data' && this.planner) {
+      if (type === 'data' && this.planner && !this.hidden) {
         this.planner.refresh()
         if (this.data.toolsOpen) this.updateInkHistory()
       }
@@ -96,6 +96,7 @@ Page({
 
   onReady() {
     wx.createSelectorQuery().select('#gl').fields({ node: true, size: true }).exec(res => {
+      if (this.unloaded) return
       const r = res && res[0]
       if (!r || !r.node) {
         wx.showModal({ title: '打不开 3D 手帐', content: '当前微信版本不支持 WebGL 画布，请升级微信后再试。', showCancel: false })
@@ -119,11 +120,13 @@ Page({
         wx.showModal({ title: '打不开 3D 手帐', content: String((e && e.message) || e), showCancel: false })
         return
       }
+      if (this.hidden) this.planner.pause()
       this.setData({ ready: true, open: startOpen })
     })
   },
 
   onShow() {
+    this.hidden = false
     if (!this.planner) return
     this.planner.resume()
     // 从日页、打卡、设置回来，数据可能变了
@@ -132,6 +135,7 @@ Page({
   },
 
   onHide() {
+    this.hidden = true
     this.finishStroke()
     this.dayTouch = null
     this.toolPinch = null
@@ -140,6 +144,8 @@ Page({
   },
 
   onUnload() {
+    this.unloaded = true
+    clearTimeout(this.inkTimer)
     this.confirmingClear = false
     this.finishStroke()
     if (this.offSync) this.offSync()
@@ -606,11 +612,12 @@ Page({
     const key = this.inkKey()
     const lines = store.getMonthInk(key)
     const redo = this.redo
-    this.setData({
+    const patch = {
       canClear: !!lines.length,
       canUndo: !!lines.length || !!this.clearHistory(key, lines),
       canRedo: !!redo && redo.key === key && redo.base === lines
-    })
+    }
+    if (Object.keys(patch).some(k => patch[k] !== this.data[k])) this.setData(patch)
   },
 
   clearHistory(key, lines) {
@@ -736,9 +743,14 @@ Page({
     if (!ink) return
     clearTimeout(this.inkTimer)
     this.inkTimer = null
-    const day = store.getDay(ink.key)
-    day.plan = (this.inkValue || '').trim()
-    store.saveDay(ink.key, day)
+    const plan = (this.inkValue || '').trim()
+    if (plan !== ink.value) {
+      const day = store.getDay(ink.key)
+      if (day.plan !== plan) {
+        day.plan = plan
+        store.saveDay(ink.key, day)
+      }
+    }
     this.planner.setDraft(0)
     this.planner.unfocus()
     this.layout({ ink: null, kb: 0 })

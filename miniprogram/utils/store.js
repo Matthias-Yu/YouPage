@@ -18,7 +18,8 @@ const PREFIX = 'yp:'
 const K_MONTH = PREFIX + 'm:'
 const K_DECO = PREFIX + 'd:'
 const K_INK = PREFIX + 'i:'
-const EMPTY_INK = []
+const EMPTY_LIST = Object.freeze([])
+const EMPTY_MONTH = Object.freeze({})
 const K_INDEX = PREFIX + 'index'
 const K_HABITS = PREFIX + 'habits'
 const K_HLOG = PREFIX + 'h:'
@@ -119,7 +120,7 @@ function isEmptyDay(day) {
 
 // 含删除标记的原始月份数据
 function rawMonth(ymKey) {
-  return read(K_MONTH + ymKey, {})
+  return read(K_MONTH + ymKey, EMPTY_MONTH)
 }
 
 // 一个月里有内容的那些天
@@ -132,8 +133,8 @@ function getMonth(ymKey) {
 
 function getDay(key) {
   const p = date.parse(key)
-  const day = getMonth(date.ym(p.y, p.m))[p.d]
-  return Object.assign(emptyDay(), day ? JSON.parse(JSON.stringify(day)) : null)
+  const day = rawMonth(date.ym(p.y, p.m))[p.d]
+  return Object.assign(emptyDay(), day && !day.gone ? JSON.parse(JSON.stringify(day)) : null)
 }
 
 function saveDay(key, day) {
@@ -183,7 +184,7 @@ function summary(day) {
 /* ---------- 月历页上的贴纸 ---------- */
 
 function getMonthDeco(ymKey) {
-  return read(K_DECO + ymKey, [])
+  return read(K_DECO + ymKey, EMPTY_LIST)
 }
 
 function saveMonthDeco(ymKey, list) {
@@ -191,8 +192,8 @@ function saveMonthDeco(ymKey, list) {
 }
 
 function getMonthInk(ymKey) {
-  const lines = read(K_INK + ymKey, EMPTY_INK)
-  return Array.isArray(lines) ? lines : EMPTY_INK
+  const lines = read(K_INK + ymKey, EMPTY_LIST)
+  return Array.isArray(lines) ? lines : EMPTY_LIST
 }
 
 function saveMonthInk(ymKey, lines) {
@@ -215,19 +216,7 @@ function stats() {
       stickers += (month[d].els || []).length
     })
   })
-  // 连续记录：今天还没写不算断，从昨天往回数
-  const has = key => {
-    const p = date.parse(key)
-    return !!getMonth(date.ym(p.y, p.m))[p.d]
-  }
-  let cur = date.today().key
-  if (!has(cur)) cur = date.addDays(cur, -1)
-  let streak = 0
-  while (streak < 3650 && has(cur)) {
-    streak++
-    cur = date.addDays(cur, -1)
-  }
-  return { pages, stickers, streak }
+  return { pages, stickers, streak: countStreak(rawMonth) }
 }
 
 /* ---------- 打卡 ---------- */
@@ -263,15 +252,31 @@ function toggleHabit(id, key) {
   return on
 }
 
-function habitStreak(id) {
-  let cur = date.today().key
-  if (!isHabitDone(id, cur)) cur = date.addDays(cur, -1)
+// 今天还没写或打卡时，从昨天往回找。同一个月只取一次数据。
+function countStreak(daysForMonth) {
+  let { y, m, d } = date.today()
+  let days = daysForMonth(date.ym(y, m))
+  if (!days[d] || days[d].gone) d--
   let n = 0
-  while (n < 3650 && isHabitDone(id, cur)) {
+  while (n < 3650) {
+    if (!d) {
+      m--
+      if (m === 0) {
+        m = 12
+        y--
+      }
+      d = date.daysIn(y, m)
+      days = daysForMonth(date.ym(y, m))
+    }
+    const entry = days[d--]
+    if (!entry || entry.gone) break
     n++
-    cur = date.addDays(cur, -1)
   }
   return n
+}
+
+function habitStreak(id) {
+  return countStreak(key => getHabitLog(key)[id] || EMPTY_MONTH)
 }
 
 /* ---------- 设置 ---------- */
@@ -334,7 +339,7 @@ function clearAll() {
 }
 
 module.exports = {
-  emptyDay, getMonth, getDay, saveDay, summary, stats, getMonthDeco, saveMonthDeco,
+  emptyDay, rawMonth, getMonth, getDay, saveDay, summary, stats, getMonthDeco, saveMonthDeco,
   getMonthInk, saveMonthInk,
   getHabits, saveHabits, getHabitLog, isHabitDone, toggleHabit, habitStreak,
   getSettings, setSetting, exportAll, importAll, clearAll,

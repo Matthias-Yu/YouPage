@@ -46,6 +46,10 @@ function wrap(ctx, text, maxW, maxLines) {
   const lines = []
   let line = ''
   for (let i = 0; i < text.length; i++) {
+    if (lines.length === maxLines) {
+      lines[maxLines - 1] = lines[maxLines - 1].slice(0, -1) + '…'
+      return lines
+    }
     const ch = text[i]
     if (ch === '\n') {
       lines.push(line)
@@ -220,8 +224,41 @@ function textBox(cell) {
 const CELL_FONT = 27
 const CELL_LINE = 32
 
+function drawCellText(ctx, c, writing, text, plan) {
+  const box = textBox(c)
+  ctx.font = CELL_FONT + 'px ' + SANS
+  const lines = text ? wrap(ctx, text, box.w, Math.max(1, Math.floor(box.h / CELL_LINE))) : []
+  // 直接写在格子里的用墨水色，从日页带过来的摘要淡一些
+  ctx.fillStyle = writing || plan ? C.hand : C.ink2
+  lines.forEach((ln, i) => ctx.fillText(ln, box.x, box.y + 26 + i * CELL_LINE))
+  if (writing) {
+    // 正在写的格子：虚线框 + 文末的光标
+    ctx.save()
+    ctx.strokeStyle = C.emphasis
+    ctx.lineWidth = 3
+    ctx.setLineDash([9, 7])
+    ctx.strokeRect(c.x + 4, c.y + 4, c.w - 8, c.h - 8)
+    ctx.setLineDash([])
+    const last = lines.length ? lines[lines.length - 1] : ''
+    const row = Math.max(0, lines.length - 1)
+    ctx.fillStyle = C.ink
+    const cursor = box.x + ctx.measureText(last).width + 3
+    ctx.fillRect(cursor, box.y + 2 + row * CELL_LINE, 3, 28)
+    ctx.restore()
+    // 省略号或组合字符有时会越过格线，须整页绘制以保留相邻格上的像素。
+    return cursor + 4 < c.x + c.w && lines.every((ln, i) => {
+      const metrics = ctx.measureText(ln)
+      const baseline = box.y + 26 + i * CELL_LINE
+      return baseline - (metrics.actualBoundingBoxAscent || CELL_FONT) > c.y + 1 &&
+        baseline + (metrics.actualBoundingBoxDescent || CELL_FONT / 2) < c.y + c.h - 1 &&
+        box.x - (metrics.actualBoundingBoxLeft || 0) > c.x + 1 &&
+        box.x + (metrics.actualBoundingBoxRight || metrics.width) < c.x + c.w - 1
+    })
+  }
+}
+
 function createPainter() {
-  const canvases = {}
+  let canvases = {}
   function scratch(w, h) {
     const k = w + 'x' + h
     if (!canvases[k]) {
@@ -232,6 +269,7 @@ function createPainter() {
   }
   let atlasImg = null
   let inkLayer = null
+  let editCell = null
 
   function sticker(ctx, key, x, y, size) {
     const cell = atlasImg && atlas.map[key]
@@ -243,6 +281,10 @@ function createPainter() {
   }
 
   return {
+    releaseScratch() {
+      canvases = {}
+    },
+
     // 贴纸图集加载好之后，月历页上的心情章和插画才画得出来
     loadAtlas(done) {
       const img = scratch(1024, 2048).canvas.createImage()
@@ -253,13 +295,12 @@ function createPainter() {
     },
 
     // draft: { d, text } 表示正在写这一天的格子，直接把输入中的文字画上去
-    month(y, m, weekStart, draft, lines) {
+    month({ y, m, weekStart, draft, lines, data, today, layout: lay }) {
+      editCell = null
       const PW = 1024, PH = 2048
       const { ctx } = scratch(PW, PH)
       begin(ctx, PW, PH, LW, LH)
       paperBase(ctx, LW, LH, 44)
-      const today = date.today()
-      const data = store.getMonth(date.ym(y, m))
 
       // 月份、年月和季节插画分成三块，留足日历正文的高度。
       ctx.textBaseline = 'alphabetic'
@@ -283,7 +324,6 @@ function createPainter() {
 
       // 星期
       const names = date.weekNames(weekStart)
-      const lay = layout(y, m, weekStart)
       const cw = GRID.w / 7
       ctx.fillStyle = '#EDEDED'
       ctx.fillRect(GRID.x, GRID.y - 52, GRID.w, 52)
@@ -322,7 +362,7 @@ function createPainter() {
       lay.cells.forEach(c => {
         if (!c.inMonth) return
         const sum = store.summary(data[c.d])
-        const isToday = c.key === today.key
+        const isToday = c.key === today
         const weekend = c.wd === 0 || c.wd === 6
         ctx.textAlign = 'left'
         ctx.font = '500 36px ' + NUMERALS
@@ -348,27 +388,14 @@ function createPainter() {
         }
         if (sum && sum.mood) sticker(ctx, catalog.stickerKey('mood-' + sum.mood), c.x + c.w - 56, c.y + 3, 54)
         const writing = !!draft && draft.d === c.d
-        const text = writing ? draft.text : (sum ? sum.snip : '')
-        const box = textBox(c)
-        ctx.font = CELL_FONT + 'px ' + SANS
-        const lines = text ? wrap(ctx, text, box.w, Math.max(1, Math.floor(box.h / CELL_LINE))) : []
-        // 直接写在格子里的用墨水色，从日页带过来的摘要淡一些
-        ctx.fillStyle = writing || (sum && sum.plan) ? C.hand : C.ink2
-        lines.forEach((ln, i) => ctx.fillText(ln, box.x, box.y + 26 + i * CELL_LINE))
-        if (writing) {
-          // 正在写的格子：虚线框 + 文末的光标
-          ctx.save()
-          ctx.strokeStyle = C.emphasis
-          ctx.lineWidth = 3
-          ctx.setLineDash([9, 7])
-          ctx.strokeRect(c.x + 4, c.y + 4, c.w - 8, c.h - 8)
-          ctx.setLineDash([])
-          const last = lines.length ? lines[lines.length - 1] : ''
-          const row = Math.max(0, lines.length - 1)
-          ctx.fillStyle = C.ink
-          ctx.fillRect(box.x + ctx.measureText(last).width + 3, box.y + 2 + row * CELL_LINE, 3, 28)
-          ctx.restore()
+        if (writing && ctx.putImageData) {
+          // 缓存虚线框、文字和光标下的纸面。坐标使用上下翻转后的实际像素。
+          const x = Math.floor(c.x), y = Math.floor(PH - (c.y + c.h) * PH / LH)
+          const w = Math.ceil(c.x + c.w) - x, h = Math.ceil(PH - c.y * PH / LH) - y
+          editCell = { cell: c, x, y, w, h, background: ctx.getImageData(x, y, w, h) }
         }
+        const fits = drawCellText(ctx, c, writing, writing ? draft.text : (sum ? sum.snip : ''), sum && sum.plan)
+        if (writing && !fits) editCell = null
       })
 
       ctx.fillStyle = C.faint
@@ -381,6 +408,28 @@ function createPainter() {
         ctx.drawImage(inkLayer.canvas, 0, 0, LW, LH)
       }
       return pixels(ctx, PW, PH)
+    },
+
+    // 同一格继续输入，只读取变化的矩形。笔迹仍在文字上层。
+    updateDraft(draft, lines) {
+      if (!editCell || editCell.cell.d !== draft.d) return false
+      const { x, y, w, h, cell, background } = editCell
+      const { canvas, ctx } = scratch(1024, 2048)
+      ctx.save()
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.beginPath()
+      ctx.rect(x, y, w, h)
+      ctx.clip()
+      ctx.putImageData(background, x, y)
+      begin(ctx, canvas.width, canvas.height, LW, LH)
+      ctx.textBaseline = 'alphabetic'
+      ctx.textAlign = 'left'
+      const fits = drawCellText(ctx, cell, true, draft.text, true)
+      if (lines.length) ctx.drawImage(inkLayer.canvas, 0, 0, LW, LH)
+      ctx.restore()
+      if (!fits) return false
+      const data = ctx.getImageData(x, y, w, h).data
+      return { x, y, width: w, height: h, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) }
     },
 
     // 每张月历页的背面印着一页周计划，孔在右边（翻过去以后靠着活页环）

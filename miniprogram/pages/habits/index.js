@@ -93,6 +93,7 @@ Page({
       }
     })
 
+    this.renderedDay = t.key
     this.setData({ mm: date.pad(m), isThisMonth, habits })
   },
 
@@ -108,15 +109,33 @@ Page({
       wx.showToast({ title: '还没到这一天', icon: 'none' })
       return
     }
-    store.toggleHabit(id, date.ymd(this.data.y, this.data.m, d))
-    wx.vibrateShort && wx.vibrateShort({ type: 'light' })
-    this.render()
+    this.toggleStamp(id, Number(d))
   },
 
   toggleToday(e) {
-    store.toggleHabit(e.currentTarget.dataset.id, date.today().key)
+    const today = date.today()
+    this.toggleStamp(e.currentTarget.dataset.id, today.d, today.key)
+  },
+
+  toggleStamp(id, d, key) {
+    const { y, m, habits } = this.data
+    const shownKey = date.ymd(y, m, d)
+    const on = store.toggleHabit(id, key || shownKey)
     wx.vibrateShort && wx.vibrateShort({ type: 'light' })
-    this.render()
+    const i = habits.findIndex(habit => habit.id === id)
+    // 日期可能在停留期间跨天，届时重新生成“今天”和“将来”的标记。
+    if (i < 0 || (key && key !== shownKey) || this.renderedDay !== date.today().key) {
+      this.render()
+      return
+    }
+    const row = 'habits[' + i + ']'
+    const patch = {
+      [row + '.days[' + (d - 1) + '].on']: on,
+      [row + '.count']: Object.keys(store.getHabitLog(date.ym(y, m))[id]).length,
+      [row + '.streak']: store.habitStreak(id)
+    }
+    if (shownKey === this.renderedDay) patch[row + '.todayDone'] = on
+    this.setData(patch)
   },
 
   onMore(e) {
